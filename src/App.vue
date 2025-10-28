@@ -11,6 +11,7 @@ import { mapState, mapMutations } from 'vuex';
 import KassenprojektAuswahl from './views/KassenprojektAuswahl.vue';
 import DesktopAuswahl from './views/DesktopAuswahl.vue';
 import KassensystemMain from './views/KassensystemMain.vue';
+import Swal from 'sweetalert2';
 
 export default {
   name: 'App',
@@ -47,7 +48,8 @@ export default {
       selectedKassenprojekt:{},
       selectedDesktop:{},
       selectedKasse:{},
-      darkMode: false
+      darkMode: false,
+      fullscreen: null
     };
   },
   computed:{
@@ -101,6 +103,43 @@ export default {
     }
   },
   methods: {
+    enterFullscreen(element) {
+      if(element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if(element.msRequestFullscreen) {      // for IE11 (remove June 15, 2022)
+        element.msRequestFullscreen();
+      } else if(element.webkitRequestFullscreen) {  // iOS Safari
+        element.webkitRequestFullscreen();
+      }
+    },
+    isBrowser(){
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+      // Überprüfen auf gängige Browser-Strings
+      if ((userAgent.includes("Chrome") || userAgent.includes("Safari") || userAgent.includes("Firefox") || userAgent.includes("Edge")) && typeof window.cordova == "undefined") {
+          return true;  // Wahrscheinlich ein Browser
+      } else {
+          return false;  // Möglicherweise eine App
+      }
+    },
+    requestFullscreen(){
+      if(this.isBrowser()){
+        Swal.fire({
+          title: "Anwendung im Vollbild starten",
+          showDenyButton: true,
+          confirmButtonText: "Ja",
+          denyButtonText: `Nein`
+        }).then((result) => {
+          /* Read more about isConfirmed, isDenied below */
+          if (result.isConfirmed) {
+            this.enterFullscreen(document.documentElement)
+            this.fullscreen = true;
+          } else if (result.isDenied) {
+            this.fullscreen = false;
+          }
+        });
+      }
+    },
     selectKassenprojekt(kassenprojekt){
       this.selectedKassenprojekt = kassenprojekt;
       this.desktopAuswahl = true;
@@ -155,6 +194,7 @@ export default {
     }
   },
   created(){
+    this.requestFullscreen();
     try{
       this.kassenprojekte = JSON.parse(`${this.kassenprojektItems}`);
     } catch(err){
