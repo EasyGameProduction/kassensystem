@@ -82,7 +82,7 @@ export default {
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--hover);
   }
   list-style: none;
 }

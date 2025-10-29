@@ -8,8 +8,10 @@
     <header class="topbar" id="topbar">
       <div class="left-actions">
         <button class="menuButton" :class="(this.menuActive)?'menuButtonActive':'menuButtonDeactive'" @click="this.openMenu()">≡</button>
-        <div @click="this.openDesktopSwitch()" class="title desktopTitle">{{ selectedKassenprojekt.name }} – {{ selectedDesktop.name }}</div>
-        <button id="switchButton" :class="(this.desktopSwitchActive)?'switchActive':''" class="headerButton" @click="this.openDesktopSwitch()">&#9660;</button>
+        <div class="desktopSwitch" @click="this.openDesktopSwitch()">
+          <span class="title desktopTitle">{{ selectedKassenprojekt.name }} – {{ selectedDesktop.name }}</span>
+          <button id="switchButton" :class="(this.desktopSwitchActive)?'switchActive':''" class="headerButton">&#9660;</button>
+        </div>
       </div>
       <div class="title">{{ selectedKasse.name }}</div>
       <div class="right-actions">
@@ -501,13 +503,14 @@ export default {
     .left-actions, .right-actions {
       display: flex; align-items: center; gap: 10px;
     }
-    .title { font-weight: 600; justify-self: start; }
+    .title { font-weight: 600; justify-self: start; cursor:default }
     .left-actions { justify-content: left; }
     .right-actions { justify-content: right; }
 
     .headerButton{
       background: none; color: #555; border: none;
       padding: 0;
+      color: var(--ink);
     }
     
     .switchActive{
@@ -517,7 +520,7 @@ export default {
     .menuButton {
       padding: 6px 10px; border-radius: 999px;
       background: var(--menu-button); color: var(--ink); border: none;
-      
+      cursor: pointer;
     }
 
     .menuButtonActive{
@@ -535,7 +538,7 @@ export default {
     }
 
     .status {
-      display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 12px;
+      display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 12px; cursor:default;
       .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
     }
   }
@@ -585,6 +588,7 @@ export default {
       display: flex; justify-content: space-between; align-items: center;
       padding: 14px 16px; border-top: 1px solid var(--border);
       font-weight: 700; font-size: 18px;
+      cursor: default;
     }
 
     .actions {

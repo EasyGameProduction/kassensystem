@@ -3,6 +3,7 @@
     <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword"/>
     <DesktopAuswahl v-if="this.desktopAuswahl" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
     <KassensystemMain v-if="this.kassensystemMain" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @switchDesktop="this.switchDesktop"/>
+    <button class="backButton fa" @click="this.goBack()">&#xf015</button>
   </div>
 </template>
 
@@ -11,6 +12,7 @@ import { mapState, mapMutations } from 'vuex';
 import KassenprojektAuswahl from './views/KassenprojektAuswahl.vue';
 import DesktopAuswahl from './views/DesktopAuswahl.vue';
 import KassensystemMain from './views/KassensystemMain.vue';
+import Swal from 'sweetalert2';
 
 export default {
   name: 'App',
@@ -47,7 +49,8 @@ export default {
       selectedKassenprojekt:{},
       selectedDesktop:{},
       selectedKasse:{},
-      darkMode: false
+      darkMode: false,
+      fullscreen: null
     };
   },
   computed:{
@@ -101,18 +104,65 @@ export default {
     }
   },
   methods: {
-    selectKassenprojekt(kassenprojekt){
-      this.selectedKassenprojekt = kassenprojekt;
+    enterFullscreen(element) {
+      if(element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if(element.msRequestFullscreen) {      // for IE11 (remove June 15, 2022)
+        element.msRequestFullscreen();
+      } else if(element.webkitRequestFullscreen) {  // iOS Safari
+        element.webkitRequestFullscreen();
+      }
+    },
+    isBrowser(){
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+      // Überprüfen auf gängige Browser-Strings
+      if ((userAgent.includes("Chrome") || userAgent.includes("Safari") || userAgent.includes("Firefox") || userAgent.includes("Edge")) && typeof window.cordova == "undefined") {
+          return true;  // Wahrscheinlich ein Browser
+      } else {
+          return false;  // Möglicherweise eine App
+      }
+    },
+    requestFullscreen(){
+      if(this.isBrowser()){
+        Swal.fire({
+          title: "Anwendung im Vollbild starten",
+          showDenyButton: true,
+          confirmButtonText: "Ja",
+          denyButtonText: `Nein`
+        }).then((result) => {
+          /* Read more about isConfirmed, isDenied below */
+          if (result.isConfirmed) {
+            this.enterFullscreen(document.documentElement)
+            this.fullscreen = true;
+          } else if (result.isDenied) {
+            this.fullscreen = false;
+          }
+        });
+      }
+    },
+    toKassenprojekt(){
+      this.kassenprojektAuswahl = true;
+      this.desktopAuswahl = false;
+      this.kassensystemMain = false;
+    },
+    toDesktop(){
       this.desktopAuswahl = true;
       this.kassenprojektAuswahl = false;
       this.kassensystemMain = false;
     },
-    selectDesktop(desktop){
-      this.selectedDesktop = desktop;
+    toKassensystemMain(){
       this.desktopAuswahl = false;
       this.kassenprojektAuswahl = false;
       this.kassensystemMain = true;
-      console.log(desktop);
+    },
+    selectKassenprojekt(kassenprojekt){
+      this.selectedKassenprojekt = kassenprojekt;
+      this.toDesktop();
+    },
+    selectDesktop(desktop){
+      this.selectedDesktop = desktop;
+      this.toKassensystemMain();
     },
     switchDarkmode(mode){
       this.darkMode = mode;
@@ -152,9 +202,20 @@ export default {
       let index = this.kassenprojekte.findIndex(o=>o.Id == obj.Id);
       this.kassenprojekte[index].password = obj.password;
       this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));
+    },
+    goBack(){
+      switch (true) {
+        case this.kassensystemMain:
+          this.toDesktop()
+          break;
+        case this.desktopAuswahl:
+          this.toKassenprojekt();
+          break;
+      }
     }
   },
   created(){
+    this.requestFullscreen();
     try{
       this.kassenprojekte = JSON.parse(`${this.kassenprojektItems}`);
     } catch(err){
@@ -171,5 +232,26 @@ export default {
     width: 100vw;
     overflow:hidden;
     font: 15px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  .backButton{
+    z-index: 999;
+    display: block;
+    position: fixed;
+    bottom: 0.3rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: large;
+    border-radius: 90px;
+    border-color: var(--border);
+    color: var(--ink);
+    background-color: var(--items);
+    box-shadow: var(--shadow);
+    cursor:pointer;
+  }
+  .backButton:hover{
+    background-color: var(--hover);
   }
 </style>

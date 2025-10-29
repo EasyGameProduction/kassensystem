@@ -1,7 +1,7 @@
 <template>
     <div class="auswahlItem" :style="cssVars">
         <div class="thumb">
-            <img :src="item.image || placeholder" :alt="item.name || 'Kassenprojekt'" />
+            <img :src="item.image || cssVars['--placeholder']" :alt="item.name || 'Kassenprojekt'" />
         </div>
         <div class="meta">
             <h3 class="name">{{ item.name || item.bezeichnung || 'Projekt' }}</h3>
@@ -24,19 +24,25 @@ export default {
   name: 'AuswahlItem',
   props: {
     item: Object,
+    darkMode: Boolean
   },
   data() {
     return {
-        placeholder: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="100%" height="100%" fill="%23efefef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-family="Arial, Helvetica, sans-serif" font-size="16">Kein Bild</text></svg>',
         activeMoreId: false
     };
   },
   computed: {
     cssVars() {
-      return {
+      if(!this.$props.darkMode){
+        return {
+          '--placeholder': 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="100%" height="100%" fill="%23efefef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-family="Arial, Helvetica, sans-serif" font-size="16">Kein Bild</text></svg>',
+        }
+      } else{
+        return{
+          '--placeholder': 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><rect width="100%" height="100%" fill="%233b3b3b"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23999" font-family="Arial, Helvetica, sans-serif" font-size="16">Kein Bild</text></svg>'
+        }
       }
     }
-    
   },
   methods: {
     async more(projekt){

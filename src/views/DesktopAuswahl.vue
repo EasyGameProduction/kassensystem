@@ -26,7 +26,7 @@
     </header>
 
     <main class="workspace" role="list" aria-label="Kassenprojekte">
-      <AuswahlItem v-for="desktopItem in desktops" role="button" tabindex="0" :key="desktopItem.Id" @click="$emit('selectDesktop', desktopItem)" @keydown.enter="$emit('selectDesktop', desktopItem)" :item="desktopItem" @delete="this.delete(desktopItem)" @changeName="this.changeName"/>
+      <AuswahlItem v-for="desktopItem in desktops" role="button" tabindex="0" :key="desktopItem.Id" @click="$emit('selectDesktop', desktopItem)" @keydown.enter="$emit('selectDesktop', desktopItem)" :item="desktopItem" @delete="this.delete(desktopItem)" @changeName="this.changeName" :darkMode="this.darkMode"/>
       <div class="addItem" @click="this.addDesktop()">
         <button class="add">+</button>
       </div>
@@ -256,15 +256,15 @@ export default {
     z-index: 99;
 
     .left-actions, .right-actions { display: flex; align-items: center; gap: 10px; }
-    .title { font-weight: 600; justify-self: center; text-align: center; font-size: 1.25rem; }
+    .title { font-weight: 600; justify-self: center; text-align: center; font-size: 1.25rem; cursor:default }
     .left-actions { justify-content: left; }
     .right-actions { justify-content: right; }
 
-    .menuButton { padding: 6px 10px; border-radius: 999px; background: var(--menu-button); color: var(--ink); border: none; }
+    .menuButton { padding: 6px 10px; border-radius: 999px; background: var(--menu-button); color: var(--ink); border: none; cursor: pointer; }
     .menuButtonActive { transform: rotate(90deg); transition: transform .4s; }
     .menuButtonDeactive { transform: rotate(0deg); transition: transform .4s; }
 
-    .status { display: flex; align-items: center; gap: 6px; color: var(--ink, #222); font-size: 12px;
+    .status { display: flex; align-items: center; gap: 6px; color: var(--ink, #222); font-size: 12px; cursor:default;
       .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok, #2ecc71); }
     }
   }

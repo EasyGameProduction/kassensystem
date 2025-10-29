@@ -26,7 +26,7 @@
     </header>
 
     <main class="workspace" role="list" aria-label="Kassenprojekte">
-      <AuswahlItem v-for="kassenItem in kassenprojekte" role="button" tabindex="0" :key="kassenItem.Id" @click="$emit('selectKassenprojekt', kassenItem)" @keydown.enter="$emit('selectKassenprojekt', kassenItem)" :item="kassenItem" @delete="this.delete(kassenItem)" @changeName="this.changeName" @changePassword="this.changePassword"/>
+      <AuswahlItem v-for="kassenItem in kassenprojekte" role="button" tabindex="0" :key="kassenItem.Id" @click="$emit('selectKassenprojekt', kassenItem)" @keydown.enter="$emit('selectKassenprojekt', kassenItem)" :item="kassenItem" @delete="this.delete(kassenItem)" @changeName="this.changeName" @changePassword="this.changePassword" :darkMode="this.darkMode"/>
       <div class="addItem" @click="this.addKassenprojekt()">
         <button class="add">+</button>
       </div>
@@ -166,15 +166,15 @@ export default {
     z-index: 99;
 
     .left-actions, .right-actions { display: flex; align-items: center; gap: 10px; }
-    .title { font-weight: 600; justify-self: center; text-align: center; font-size: 1.25rem; }
+    .title { font-weight: 600; justify-self: center; text-align: center; font-size: 1.25rem; cursor:default }
     .left-actions { justify-content: left; }
     .right-actions { justify-content: right; }
 
-    .menuButton { padding: 6px 10px; border-radius: 999px; background: var(--menu-button); color: var(--ink); border: none; }
+    .menuButton { padding: 6px 10px; border-radius: 999px; background: var(--menu-button); color: var(--ink); border: none; cursor: pointer; }
     .menuButtonActive { transform: rotate(90deg); transition: transform .4s; }
     .menuButtonDeactive { transform: rotate(0deg); transition: transform .4s; }
 
-    .status { display: flex; align-items: center; gap: 6px; color: var(--ink, #222); font-size: 12px;
+    .status { display: flex; align-items: center; gap: 6px; color: var(--ink, #222); font-size: 12px; cursor:default;
       .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok, #2ecc71); }
     }
   }
