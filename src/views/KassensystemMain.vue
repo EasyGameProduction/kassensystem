@@ -94,7 +94,7 @@
     </main>
   </div>
 
-  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars"/>
+  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems"/>
   <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.getDesktops()" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
 </template>
 
@@ -392,7 +392,12 @@ export default {
     },
     openMenu(){
       this.menuActive = !this.menuActive;
-      this.headerHeight = document.getElementById('topbar').getBoundingClientRect().height
+      this.headerHeight = document.getElementById('topbar').getBoundingClientRect().height;
+      if(!this.menuActive){
+        /*this.$store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(this.artikelItems));
+        this.$store.commit('kasse/SET_PFAND_ITEMS',JSON.stringify(this.pfandItems));*/
+        console.log("Hier Artikel und Pfand speichern");
+      }
     },
     openDesktopSwitch(){
       this.desktopSwitchActive = !this.desktopSwitchActive;
@@ -466,6 +471,16 @@ export default {
     getPfandStore(){
       this.pfandItems = JSON.parse(this.$store.state.kasse.pfandItems);
       this.pfandItems = this.pfandItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    },
+    setArticleItems(artikelItems){
+      this.artikelItems = artikelItems;
+      console.log("Hier ArtikelItems speichern")
+      /*this.$store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(artikelItems));*/
+    },
+    setPfandItems(pfandItems){
+      this.pfandItems = pfandItems;
+      console.log("Hier PfandItems speichern")
+      /*this.$store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(artikelItems));*/
     }
   },
   created(){

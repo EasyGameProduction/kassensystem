@@ -38,7 +38,11 @@ export default {
   },
   methods: {
     formatPrice(price) {
-      return price.toFixed(2);
+      try{
+        return price.toFixed(2);
+      } catch(err){
+        return price;
+      }
     },
     itemClick() {
       if (this.editMode) {

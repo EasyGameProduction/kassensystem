@@ -77,7 +77,8 @@ export default {
           '--radius': '14px',
           '--shadow': '0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.08)',
           '--hover': '#eeeeee',
-          '--menu-button': '#f1f3f5'
+          '--menu-button': '#f1f3f5',
+          '--menu-left': '#ffffff',
         };
       } else{
         return {
@@ -98,7 +99,8 @@ export default {
           '--radius': '14px',
           '--shadow': '0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.08)',
           '--hover': '#2f2f2f',
-          '--menu-button': '#303030'
+          '--menu-button': '#303030',
+          '--menu-left': '#161616'
         };
       }
     }
