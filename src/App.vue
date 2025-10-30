@@ -143,12 +143,8 @@ export default {
         });
       }
     },
-    toKassenprojekt(){
-      this.kassenprojektAuswahl = true;
-      this.desktopAuswahl = false;
-      this.kassensystemMain = false;
-    },
-    toDesktop(){
+    selectKassenprojekt(kassenprojekt){
+      this.selectedKassenprojekt = kassenprojekt;
       this.desktopAuswahl = true;
       this.kassenprojektAuswahl = false;
       this.kassensystemMain = false;
