@@ -149,6 +149,16 @@ export default {
       this.kassenprojektAuswahl = false;
       this.kassensystemMain = false;
     },
+    toKassenprojekt(){
+      this.kassenprojektAuswahl = true;
+      this.desktopAuswahl = false;
+      this.kassensystemMain = false;
+    },
+    toDesktop(){
+      this.desktopAuswahl = true;
+      this.kassenprojektAuswahl = false;
+      this.kassensystemMain = false;
+    },
     toKassensystemMain(){
       this.desktopAuswahl = false;
       this.kassenprojektAuswahl = false;
