@@ -534,6 +534,7 @@ export default {
         if(index >= 0){
           itemsStore[index] = item;
         } else{
+          itemsStore = new Array()
           itemsStore.push(item)
         }
       });
@@ -563,6 +564,7 @@ export default {
         if(index >= 0){
           itemsStore[index] = item;
         } else{
+          itemsStore = new Array()
           itemsStore.push(item)
         }
       });
@@ -602,6 +604,7 @@ export default {
       if(this.artikelItems != undefined && this.artikelItems.length > 0){
         newId = +this.artikelItems[this.artikelItems.length-1].Id + 1;
       } else{
+        this.artikelItems = new Array();
         newId = 1;
       }
 
@@ -622,6 +625,9 @@ export default {
       }
 
       this.artikelItems.push(artikel);
+      if(this.artikelItemsSichtbarkeit == undefined || this.artikelItemsSichtbarkeit < 0){
+        this.artikelItemsSichtbarkeit = new Array();
+      }
       this.artikelItemsSichtbarkeit.push(artikelSichtbarkeit);
       this.setArticleItems(this.artikelItems);
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
@@ -631,6 +637,7 @@ export default {
       if(this.pfandItems != undefined && this.pfandItems.length > 0){
         newId = +this.pfandItems[this.pfandItems.length-1].Id + 1;
       } else{
+        this.pfandItems = new Array();
         newId = 1;
       }
 
@@ -651,6 +658,9 @@ export default {
       }
 
       this.pfandItems.push(pfand);
+      if(this.pfandItemsSichtbarkeit == undefined || this.pfandItemsSichtbarkeit.length < 0){
+        this.pfandItemsSichtbarkeit = new Array();
+      }
       this.pfandItemsSichtbarkeit.push(pfandSichtbarkeit);
       this.setPfandItems(this.pfandItems);
       this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
