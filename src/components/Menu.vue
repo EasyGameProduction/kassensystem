@@ -107,6 +107,7 @@
           class="itemsWrapper"
           ghost-class="drag-ghost"
           chosen-class="drag-chosen"
+          handle=".dragHandle"
           @end="onDragEndPfand"
         >
           <template #item="{ element: item, index }">
