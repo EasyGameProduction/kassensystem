@@ -164,11 +164,37 @@ export default {
       this.kassenprojektAuswahl = false;
       this.kassensystemMain = true;
     },
-    selectKassenprojekt(kassenprojekt){
+    async selectKassenprojekt(kassenprojekt){
+      if(kassenprojekt.password != undefined && kassenprojekt.password != ''){
+        await Swal.fire({
+          title: "Kassenprojekt Passwort",
+          input: "text",
+          showDenyButton: true,
+          confirmButtonText: "Speichern",
+          denyButtonText: "Abbrechen",
+        }).then((result) => {
+            if(kassenprojekt.password != result.password){
+              return;
+            }
+        })
+      }
       this.selectedKassenprojekt = kassenprojekt;
       this.toDesktop();
     },
-    selectDesktop(desktop){
+    async selectDesktop(desktop){
+      if(desktop.password != undefined && desktop.password != ''){
+        await Swal.fire({
+          title: "Kassenprojekt Passwort",
+          input: "text",
+          showDenyButton: true,
+          confirmButtonText: "Speichern",
+          denyButtonText: "Abbrechen",
+        }).then((result) => {
+            if(desktop.password != result.password){
+              return;
+            }
+        })
+      }
       this.selectedDesktop = desktop;
       this.toKassensystemMain();
     },

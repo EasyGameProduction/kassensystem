@@ -27,7 +27,7 @@
       </button>
 
       <nav class="navList" aria-label="Navigation">
-        <button class="navItem" @click="daten = true">
+        <button class="navItem" :class="daten?'navItem-active':''" @click="daten = true">
           <span class="navIcon">📝</span>
           <span class="navLabel">Daten</span>
         </button>
@@ -41,13 +41,18 @@
           <span class="navIcon">🧭</span>
           <span class="navLabel">Adminkonsole</span>
         </button>
+
+        <button class="navItem">
+          <span class="navIcon">⚙️</span>
+          <span class="navLabel">Erweiterte Einstellungen</span>
+        </button>
       </nav>
     </aside>
 
     <main class="rightContainer" role="main">
       <div id="daten" v-if="daten">
         <h1>Daten</h1>
-        <h3>Artikel:</h3>
+        <div class="datenHeader"><h3>Artikel:</h3><button class="plusButton" @click="this.addArtikel()">+</button></div>
 
         <!-- draggable wrapper: v-model linked to items -->
         <draggable
@@ -61,6 +66,8 @@
           <template #item="{ element: item, index }">
             <div class="itemContainer" :data-id="item.id" >
               <div class="itemHeader">
+                <button class="loeschen" @click="this.deleteArtikel(item)">🗑</button>
+
                 <span class="dragHandle" title="Ziehen">⠿</span>
                 <input
                     :id="'bezeichnung-'+item.id"
@@ -69,6 +76,8 @@
                     type="text"
                     v-model="item.bezeichnung"
                 />
+                <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Sichtbar" v-if="artikelItemsSichtbarkeit.find(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf06e;</span>
+                <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Unsichtbar" v-if="!artikelItemsSichtbarkeit.find(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
               </div>
 
               <label :for="'preis-'+item.id">Preis (€): </label>
@@ -90,7 +99,7 @@
           </template>
         </draggable>
         <br/>
-        <h3>Pfand:</h3>
+        <div class="datenHeader"><h3>Pfand:</h3><button class="plusButton" @click="this.addPfand()">+</button></div>
         <draggable
           v-model="pfandItems"
           item-key="id"
@@ -102,6 +111,8 @@
           <template #item="{ element: item, index }">
             <div class="itemContainer" :data-id="item.id" >
               <div class="itemHeader">
+                <button class="loeschen" @click="this.deletePfand(item)">🗑</button>
+
                 <span class="dragHandle" title="Ziehen">⠿</span>
                 <input
                     :id="'bezeichnung-'+item.id"
@@ -110,6 +121,8 @@
                     type="text"
                     v-model="item.bezeichnung"
                 />
+                <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Sichtbar" v-if="pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf06e;</span>
+                <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Unsichtbar" v-if="!pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
               </div>
 
               <label :for="'preis-'+item.id">Preis (€): </label>
@@ -155,6 +168,8 @@ export default {
       type: Number,
       default: 64,
     },
+    artikelItemsSichtbarkeit: Array,
+    pfandItemsSichtbarkeit: Array
   },
   data() {
     return {
@@ -183,6 +198,25 @@ export default {
     onDragEndPfand(evt) {
       this.$emit('setPfandItems', this.pfandItems);
     },
+    switchSichtbarkeitArtikel(item){
+      this.$emit('setArtikelSichtbarkeit', item);
+    },
+    switchSichtbarkeitPfand(item){
+      this.$emit('setPfandSichtbarkeit', item);
+    },
+    addArtikel(){
+      this.$emit('addArtikel');
+    },
+    addPfand(){
+      this.$emit('addPfand');
+    },
+    deleteArtikel(item){
+      this.$emit('deleteArtikel',item);
+      console.log('Lösche');
+    },
+    deletePfand(item){
+      this.$emit('deletePfand',item);
+    }
   },
   computed: {
     cssVars() {
@@ -303,6 +337,11 @@ export default {
   text-align: left;
   cursor: pointer;
 }
+
+.navItem-active{
+  background-color: var(--bg);
+}
+
 .navIcon {
   min-width: 36px;
   min-height: 36px;
@@ -349,6 +388,7 @@ export default {
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   user-select: none;
+  position: relative;
 }
 
 /* small header with drag handle */
@@ -366,6 +406,13 @@ export default {
   user-select:none;
 }
 .itemIndex { color: #666; font-size:0.85rem; }
+
+.itemButton{
+  padding:4px 6px;
+  border-radius:6px;
+  background: rgba(0,0,0,0.03);
+  cursor: pointer;
+}
 
 /* Hover feedback */
 .itemContainer:hover {
@@ -407,8 +454,59 @@ select{
     color: var(--ink);
 }
 
+
 h3{
+    margin-top: 0;
     margin-bottom: 0;
+}
+
+.datenHeader{
+  display: flex;
+  justify-content: space-between;
+}
+
+.plusButton{
+  padding: 0;
+  height: 2rem;
+  width: 2rem;
+  background-color: var(--items);
+  border-color: var(--border);
+  border-radius: 90px;
+  color: var(--ink);
+}
+
+.plusButton:hover{
+  background-color: var(--hover);
+}
+
+.loeschen{
+  position: absolute;
+  left: 50%;
+  z-index: 90;
+  transform: translateX(-50%);
+  top: -1.5rem;
+  width: 2rem;
+  height: 2rem;
+  border-color: var(--border);
+  color: var(--ink);
+  background-color: var(--items);
+  border-radius: 90px;
+  font-size: larger;
+  opacity: 0;
+  pointer-events: all;
+  transition: opacity 0.2s ease;
+}
+
+.itemContainer:hover .loeschen{
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 0.2s ease;
+}
+
+.itemContainer:hover .loeschen,
+.itemContainer .loeschen:hover {
+  opacity: 1;
+  pointer-events: all;
 }
 
 /* Very small screens: hide sidebar */
