@@ -529,29 +529,33 @@ export default {
       this.artikelItems = artikelItems;
 
       let itemsStore = JSON.parse(this.$store.state.kasse.artikelItems);
-      this.artikelItems.forEach(item => {
-        let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
-        if(index >= 0){
-          itemsStore[index] = item;
-        } else{
-          itemsStore = new Array()
-          itemsStore.push(item)
-        }
-      });
-
-      if(this.artikelItems != undefined && this.artikelItems.length > 0){
-        itemsStore = itemsStore.filter(storeItem => {
-          if (
-            storeItem.desktopID !== this.artikelItems[0].desktopID ||
-            storeItem.kassenprojektID !== this.artikelItems[0].kassenprojektID
-          ) {
-            return true;
+      if(itemsStore){
+        this.artikelItems.forEach(item => {
+          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
+          if(index >= 0){
+            itemsStore[index] = item;
+          } else{
+            itemsStore = new Array()
+            itemsStore.push(item)
           }
-
-          return this.artikelItems.some(item =>
-            item.Id === storeItem.Id
-          );
         });
+
+        if(this.artikelItems != undefined && this.artikelItems.length > 0){
+          itemsStore = itemsStore.filter(storeItem => {
+            if (
+              storeItem.desktopID !== this.artikelItems[0].desktopID ||
+              storeItem.kassenprojektID !== this.artikelItems[0].kassenprojektID
+            ) {
+              return true;
+            }
+
+            return this.artikelItems.some(item =>
+              item.Id === storeItem.Id
+            );
+          });
+        }
+      } else{
+        itemsStore = this.artikelItems;
       }
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(itemsStore));
     },
@@ -559,29 +563,33 @@ export default {
       this.pfandItems = pfandItems;
 
       let itemsStore = JSON.parse(this.$store.state.kasse.pfandItems);
-      this.pfandItems.forEach(item => {
-        let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
-        if(index >= 0){
-          itemsStore[index] = item;
-        } else{
-          itemsStore = new Array()
-          itemsStore.push(item)
-        }
-      });
-
-      if(this.pfandItems != undefined && this.pfandItems.length > 0){
-        itemsStore = itemsStore.filter(storeItem => {
-          if (
-            storeItem.desktopID !== this.pfandItems[0].desktopID ||
-            storeItem.kassenprojektID !== this.pfandItems[0].kassenprojektID
-          ) {
-            return true;
+      if(itemsStore){
+        this.pfandItems.forEach(item => {
+          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
+          if(index >= 0){
+            itemsStore[index] = item;
+          } else{
+            itemsStore = new Array()
+            itemsStore.push(item)
           }
-
-          return this.pfandItems.some(item =>
-            item.Id === storeItem.Id
-          );
         });
+
+        if(this.pfandItems != undefined && this.pfandItems.length > 0){
+          itemsStore = itemsStore.filter(storeItem => {
+            if (
+              storeItem.desktopID !== this.pfandItems[0].desktopID ||
+              storeItem.kassenprojektID !== this.pfandItems[0].kassenprojektID
+            ) {
+              return true;
+            }
+
+            return this.pfandItems.some(item =>
+              item.Id === storeItem.Id
+            );
+          });
+        }
+      } else{
+        itemsStore = this.pfandItems;
       }
       this.$store.commit('kasse/SET_PFAND_ITEMS',JSON.stringify(itemsStore));
     },
