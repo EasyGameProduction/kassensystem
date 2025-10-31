@@ -528,6 +528,7 @@ export default {
     setArticleItems(artikelItems){
       this.artikelItems = artikelItems;
 
+      console.log(artikelItems);
       let itemsStore = JSON.parse(this.$store.state.kasse.artikelItems);
       if(itemsStore){
         this.artikelItems.forEach(item => {
@@ -535,7 +536,6 @@ export default {
           if(index >= 0){
             itemsStore[index] = item;
           } else{
-            itemsStore = new Array()
             itemsStore.push(item)
           }
         });
@@ -569,7 +569,6 @@ export default {
           if(index >= 0){
             itemsStore[index] = item;
           } else{
-            itemsStore = new Array()
             itemsStore.push(item)
           }
         });
