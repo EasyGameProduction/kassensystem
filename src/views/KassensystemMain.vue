@@ -625,7 +625,7 @@ export default {
       }
 
       this.artikelItems.push(artikel);
-      if(this.artikelItemsSichtbarkeit == undefined || this.artikelItemsSichtbarkeit < 0){
+      if(!this.artikelItemsSichtbarkeit || this.artikelItemsSichtbarkeit == undefined || this.artikelItemsSichtbarkeit < 0){
         this.artikelItemsSichtbarkeit = new Array();
       }
       this.artikelItemsSichtbarkeit.push(artikelSichtbarkeit);
@@ -658,7 +658,7 @@ export default {
       }
 
       this.pfandItems.push(pfand);
-      if(this.pfandItemsSichtbarkeit == undefined || this.pfandItemsSichtbarkeit.length < 0){
+      if(!this.pfandItemsSichtbarkeit || this.pfandItemsSichtbarkeit == undefined || this.pfandItemsSichtbarkeit.length < 0){
         this.pfandItemsSichtbarkeit = new Array();
       }
       this.pfandItemsSichtbarkeit.push(pfandSichtbarkeit);
