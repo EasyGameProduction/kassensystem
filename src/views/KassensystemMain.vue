@@ -534,26 +534,26 @@ export default {
         this.artikelItems.forEach(item => {
           let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
           if(index >= 0){
-            itemsStore[index] = item;
+            //itemsStore[index] = item;
+            itemsStore.splice(index, 1);
+            itemsStore.push(item)
           } else{
             itemsStore.push(item)
           }
         });
 
-        if(this.artikelItems != undefined && this.artikelItems.length > 0){
-          itemsStore = itemsStore.filter(storeItem => {
-            if (
-              storeItem.desktopID !== this.artikelItems[0].desktopID ||
-              storeItem.kassenprojektID !== this.artikelItems[0].kassenprojektID
-            ) {
-              return true;
-            }
+        itemsStore = itemsStore.filter(storeItem => {
+          if (
+            storeItem.desktopID !== this.$props.selectedDesktop.Id ||
+            storeItem.kassenprojektID !== this.$props.selectedKassenprojekt.Id
+          ) {
+            return true;
+          }
 
-            return this.artikelItems.some(item =>
-              item.Id === storeItem.Id
-            );
-          });
-        }
+          return this.artikelItems.some(item =>
+            item.Id === storeItem.Id
+          );
+        });
       } else{
         itemsStore = this.artikelItems;
       }
@@ -567,26 +567,26 @@ export default {
         this.pfandItems.forEach(item => {
           let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
           if(index >= 0){
-            itemsStore[index] = item;
+            //itemsStore[index] = item;
+            itemsStore.splice(index, 1);
+            itemsStore.push(item);
           } else{
             itemsStore.push(item)
           }
         });
 
-        if(this.pfandItems != undefined && this.pfandItems.length > 0){
-          itemsStore = itemsStore.filter(storeItem => {
-            if (
-              storeItem.desktopID !== this.pfandItems[0].desktopID ||
-              storeItem.kassenprojektID !== this.pfandItems[0].kassenprojektID
-            ) {
-              return true;
-            }
+        itemsStore = itemsStore.filter(storeItem => {
+          if (
+            storeItem.desktopID !== this.$props.selectedDesktop.Id ||
+            storeItem.kassenprojektID !== this.$props.selectedKassenprojekt.Id
+          ) {
+            return true;
+          }
 
-            return this.pfandItems.some(item =>
-              item.Id === storeItem.Id
-            );
-          });
-        }
+          return this.pfandItems.some(item =>
+            item.Id === storeItem.Id
+          );
+        });
       } else{
         itemsStore = this.pfandItems;
       }
@@ -681,6 +681,11 @@ export default {
     deleteArtikel(item){
       let index = this.artikelItems.findIndex(obj=>obj.Id == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
       this.artikelItems.splice(index, 1);
+
+      index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.Id == item.artikelId && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
+      this.artikelItemsSichtbarkeit.splice(index, 1);
+      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
+
       this.setArticleItems(this.artikelItems);
     },
     deletePfand(item){
@@ -698,6 +703,11 @@ export default {
       }
 
       this.pfandItems.splice(index, 1);
+
+      index = this.pfandItemsSichtbarkeit.findIndex(obj=>obj.Id == item.pfandId && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
+      this.pfandItemsSichtbarkeit.splice(index, 1);
+      this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+
       this.setPfandItems(this.pfandItems);
     }
   },
@@ -706,6 +716,13 @@ export default {
     this.getPfand();
     this.getArtikelSichtbarkeit();
     this.getPfandSichtbarkeit();
+    if((this.artikelItems == undefined || this.artikelItems.length == 0) && (this.pfandItems == undefined || this.pfandItems.length == 0)){
+        Swal.fire({
+          title: "Artikel hinzufügen",
+          text: "Sie können über Menü->Daten neue Artikel anlegen",
+          icon: "info"
+        });
+    }
   }
 };
 </script>
