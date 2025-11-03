@@ -2,7 +2,7 @@
   <button
     class="item"
     :class="{ 'item--start': start }"
-    :style="cssVars"
+    :style="[cssVars, { backgroundColor: ((darkMode)?item.dmcolor:item.color) }]"
     @click="itemClick"
   >
     <div>
@@ -20,6 +20,7 @@ export default {
   props: {
     item: Object,
     editMode: Boolean,
+    darkMode: Boolean
   },
   data() {
     return {

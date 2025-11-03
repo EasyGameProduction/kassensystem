@@ -15,7 +15,7 @@
       </div>
       <div class="title">{{ selectedKasse.name }}</div>
       <div class="right-actions">
-        <div class="status"><span class="dot"></span> online</div>
+        <div class="status"><span class="dot" :class="(online)?'online':'offline'"></span> {{ (online)?'online':'offline' }}</div>
         <label class="switch">
           <input :checked="darkModeDefault" id="checkbox" type="checkbox" v-model="darkMode" @change="$emit('switchDarkmode',darkMode)"/>
           <span class="slider">
@@ -39,7 +39,7 @@
       <!-- Linke Seite -->
       <section class="left" id="leftPane" ref="leftPane">
         <div class="artikelAuswahl" id="artikelAuswahl">
-          <Item class="artikelItem" v-for="artikel in this.artikelItems" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" @addItem="this.addArtikel" v-show="this.artikelItemsSichtbarkeit != undefined && this.artikelItemsSichtbarkeit.find(obj=>obj.artikelId == artikel.Id && obj.desktopID == artikel.desktopID && obj.kassenprojektID == artikel.kassenprojektID).sichtbar"/>
+          <Item class="artikelItem" v-for="artikel in this.artikelItems" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" @addItem="this.addArtikel" v-show="this.getItemVisible(artikel, 'artikel')" :darkMode="this.darkMode"/>
         </div>
 
         <!-- Horizontaler Griff -->
@@ -61,7 +61,7 @@
           ref="bottomBar"
           v-if="this.pfandItems != undefined && this.pfandItems.length > 0" 
         >
-          <Item class="pfandItem" v-for="pfand in this.pfandItems" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" @addItem="this.addPfand" v-show="this.pfandItemsSichtbarkeit != undefined && this.pfandItemsSichtbarkeit.find(obj=>obj.pfandId == pfand.Id && obj.desktopID == pfand.desktopID && obj.kassenprojektID == pfand.kassenprojektID).sichtbar"/>
+          <Item class="pfandItem" v-for="pfand in this.pfandItems" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" @addItem="this.addPfand" v-show="this.getItemVisible(pfand, 'pfand')" :darkMode="this.darkMode"/>
         </div>
       </section>
 
@@ -82,20 +82,49 @@
           <WarenkorbItem v-for="artikel in this.artikelAuswahl" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" :items="this.artikelItems" :pfandItem="this.pfandItems.find(p=>p.Id == artikel.pfandId)" @removeItem="this.removeWArtikel" @removeAll="this.removeWAllArtikel" :lineColor="'blue'"/>
           <WarenkorbItem v-for="pfand in this.pfandAuswahl" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" :items="this.pfandItems" @removeItem="this.removeWPfand" @removeAll="this.removeWAllPfand" :lineColor="'green'"/>
         </div>
-        <div class="total">
-          <span>Gesamt</span>
-          <span>{{rechnungsbetrag}} €</span>
-        </div>
-        <div class="actions">
-          <button @click="removeWAll" class="btn btn-danger"><span class="btn-text">Löschen</span></button>
-          <button @click="bestaetigen" class="btn btn-primary btn-bestaetigen"><span class="btn-text">Bestätigen</span></button>
+
+        <div class="totalCont" :style="{ transform: `translateY(calc(-1 * var(--total-up)))` }" ref="totalCont">
+          <!-- Handle jetzt im totalCont - bleibt genau auf der border-top -->
+          <div
+            class="h-handle total-handle"
+            id="hHandleRight"
+            ref="hHandleRight"
+            aria-label="Gesamtbereich anpassen"
+            @pointerdown="onPointerDownTotal"
+          >
+            <div class="handle-square" role="separator" aria-orientation="horizontal"></div>
+          </div>
+
+          <div id="showTotal">
+            <div class="total">
+              <span>Gesamt</span>
+              <span>{{rechnungsbetrag}} €</span>
+            </div>
+            <div class="actions">
+              <div>
+                <button @click="removeWAll" class="btn btn-danger"><span class="btn-text">Löschen</span></button>
+                <button @click="bestaetigen(false)" class="btn btn-primary btn-bestaetigen"><span class="btn-text">Bestätigen</span></button>
+              </div>
+            </div>
+          </div>
+          <div id="zusatzButtons" class="actions">
+              <div>
+                <button @click="this.rechnerActive = !this.rechnerActive" class="btn btn-default"><span class="btn-text">Rechner</span></button>
+                <button @click="bestaetigen(true)" class="btn btn-success"><span class="btn-text">Helfer frei</span></button>
+              </div>
+              <div>
+                <button @click="this.showLetzteBestellung()" class="btn btn-primary"><span class="btn-text">Letzte anzeigen</span></button>
+                <button @click="this.stornoLetzte()" class="btn btn-danger"><span class="btn-text">Storno Letzte</span></button>
+              </div>
+          </div>
         </div>
       </aside>
     </main>
   </div>
 
-  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand"/>
+  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode"/>
   <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.getDesktops()" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
+  <Rechner v-if="this.rechnerActive" :active="this.rechnerActive" :rechnerBetrag="this.rechnungsbetrag" @closeRechner="this.rechnerActive = !this.rechnerActive"/>
 </template>
 
 <script>
@@ -113,6 +142,7 @@ import WarenkorbItem from '@/components/WarenkorbItem.vue';
 import Menu from '@/components/Menu.vue';
 import DesktopSwitch from '@/components/DesktopSwitch.vue';
 import Swal from 'sweetalert2';
+import Rechner from '@/components/Rechner.vue';
 
 export default {
   name: 'KassensystemMain',
@@ -120,13 +150,15 @@ export default {
     Item,
     WarenkorbItem,
     Menu,
-    DesktopSwitch
+    DesktopSwitch,
+    Rechner
   },
   props:{
     selectedKassenprojekt: Object,
     selectedDesktop: Object,
     selectedKasse: Object,
     darkModeDefault: Boolean,
+    online: Boolean
   },
   data() {
     return {
@@ -139,141 +171,41 @@ export default {
       _startHeight: 0,
       _pointerIdH: null,
 
+      // total handle
+      totalUp: -80,             // px, wie weit die totalCont nach oben gezogen ist
+      _startYTotal: 0,
+      _startTotalUp: 0,
+      _pointerIdTotal: null,
+      MIN_TOTAL_UP: 0,        // komplett zu (nur Header sichtbar)
+      MAX_TOTAL_UP: 160,      // wieviel du maximal aufdecken willst (z.B. Höhe der actions)
+
       // Grenzen (px)
       MIN_RIGHT: 0,
       MAX_RIGHT: 340,
       MIN_BOTTOM: 0.1,
-      MAX_BOTTOM: 180,
+      MAX_BOTTOM: 380,
 
       rechnungsbetrag: (0.00).toFixed(2),
 
-      artikelItemsSichtbarkeit: [
-        /*{
-          artikelId: 1,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        },
-        {
-          artikelId: 2,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        },
-        {
-          artikelId: 3,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        },
-        {
-          artikelId: 4,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        },
-        {
-          artikelId: 5,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        },
-        {
-          artikelId: 6,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        },
-        {
-          artikelId: 1,
-          kassenprojektID: 1,
-          desktopID: 2,
-          sichtbar: true
-        }*/
-      ],
-      pfandItemsSichtbarkeit: [
-        /*{
-          pfandId: 1,
-          kassenprojektID: 1,
-          desktopID: 1,
-          sichtbar: true
-        }*/
-      ],
+      artikelItemsSichtbarkeit: [],
+      pfandItemsSichtbarkeit: [],
 
-      artikelItems: [
-        /*{
-          Id: 1,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'Bier',
-          preis: 3.50,
-          pfandId: 1
-        },
-        {
-          Id: 2,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'Hefe',
-          preis: 3.50,
-          pfandId: 1
-        },
-        {
-          Id: 3,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'Maß',
-          preis: 7.00,
-          pfandId: 1
-        },
-        {
-          Id: 4,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'Limo',
-          preis: 1.50,
-          pfandId: 1
-        },
-        {
-          Id: 5,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'Wein',
-          preis: 6.50,
-          pfandId: 1
-        },
-        {
-          Id: 6,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'Wasser',
-          preis: 1.00,
-          pfandId: 1
-        },
-        {
-          Id: 1,
-          kassenprojektID: 1,
-          desktopID: 2,
-          bezeichnung: 'Steak m. Brötchen',
-          preis: 7.00,
-          pfandId: undefined
-        }*/
-      ],
-      pfandItems: [
-        /*{
-          Id: 1,
-          kassenprojektID: 1,
-          desktopID: 1,
-          bezeichnung: 'PET',
-          preis: 1.00
-        }*/
-      ],
+      artikelItems: [],
+      pfandItems: [],
       artikelAuswahl: [],
       pfandAuswahl: [],
+
+      letzteBestellung: {
+        artikelAuswahl: [],
+        pfandAuswahl: [],
+        rechnungsbetrag: (0.00).toFixed(2),
+      },
 
       menuActive: false,
       headerHeight: 0,
       darkMode: this.darkModeDefault,
-      desktopSwitchActive: false
+      desktopSwitchActive: false,
+      rechnerActive: false
     };
   },
   computed: {
@@ -288,7 +220,8 @@ export default {
           '--bottom-row-height': `${this.bottomRowHeight}px`,
           '--header-height': '54px',
 
-          '--itemWidth': `${this.width}px`
+          '--itemWidth': `${this.width}px`,
+          '--total-up': `${this.totalUp}px`   // neu
         };
       } else{
         return {
@@ -296,7 +229,8 @@ export default {
           '--bottom-row-height': `${this.bottomRowHeight}px`,
           '--header-height': '54px',
 
-          '--itemWidth': `${this.width}px`
+          '--itemWidth': `${this.width}px`,
+          '--total-up': `${this.totalUp}px`   // neu
         };
       }
     }
@@ -355,6 +289,35 @@ export default {
       this.$refs.hHandle?.releasePointerCapture?.(this._pointerIdH);
       this._pointerIdH = null;
     },
+
+    // ====== Horizontaler Griff (rechts / Warenkorb) ======
+    onPointerDownTotal(e) {
+      // capture
+      this._pointerIdTotal = e.pointerId;
+      e.currentTarget.setPointerCapture?.(this._pointerIdTotal);
+      this._startYTotal = e.clientY;
+      this._startTotalUp = this.totalUp;
+
+      window.addEventListener('pointermove', this.onPointerMoveTotal);
+      window.addEventListener('pointerup', this.onPointerUpTotal);
+    },
+
+    onPointerMoveTotal(e) {
+      const dy = e.clientY - this._startYTotal;
+      // dy > 0 -> pointer nach unten bewegt -> totalUp soll kleiner werden (nach unten schieben)
+      // dy < 0 -> pointer nach oben -> totalUp erhöhen (mehr aufdecken)
+      let newTotalUp = this._startTotalUp - dy; // weil y-Koord nach unten wächst
+      newTotalUp = Math.max(this.MIN_TOTAL_UP, Math.min(this.MAX_TOTAL_UP, Math.round(newTotalUp)));
+      this.totalUp = newTotalUp;
+    },
+
+    onPointerUpTotal() {
+      window.removeEventListener('pointermove', this.onPointerMoveTotal);
+      window.removeEventListener('pointerup', this.onPointerUpTotal);
+      this.$refs.hHandleRight?.releasePointerCapture?.(this._pointerIdTotal);
+      this._pointerIdTotal = null;
+    },
+
     addArtikel(artikel){
       let index = -1
       if(this.artikelAuswahl.length > 0){
@@ -457,10 +420,17 @@ export default {
       this.headerHeight = document.getElementById('topbar').getBoundingClientRect().height;
       console.log(this.headerHeight);
     },
-    bestaetigen(){
+    bestaetigen(helferFrei){
       let artikelAuswahl = this.artikelAuswahl;
       let pfandAuswahl = this.pfandAuswahl;
       let rechnungsbetrag = this.rechnungsbetrag;
+
+      this.letzteBestellung = {
+        artikelAuswahl: artikelAuswahl,
+        pfandAuswahl: pfandAuswahl,
+        rechnungsbetrag: rechnungsbetrag
+      }
+
       var neuerBeleg = {
         time: Date.now(),
         kasse: this.$props.selectedKasse.Id,
@@ -468,7 +438,8 @@ export default {
         desktopID: this.$props.selectedDesktop.Id,
         artikelAuswahl: artikelAuswahl,
         pfandAuswahl: pfandAuswahl,
-        rechnungsbetrag: rechnungsbetrag
+        rechnungsbetrag: rechnungsbetrag,
+        helferFrei: helferFrei
       }
 
       try{
@@ -709,6 +680,109 @@ export default {
       this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
 
       this.setPfandItems(this.pfandItems);
+    },
+    getItemVisible(item, objekt){
+      if(objekt == 'artikel'){
+        let artikel = item;
+        try{
+          if(this.artikelItemsSichtbarkeit != undefined && this.artikelItemsSichtbarkeit.find(obj=>obj.artikelId == artikel.Id && obj.desktopID == artikel.desktopID && obj.kassenprojektID == artikel.kassenprojektID).sichtbar){
+            return true;
+          } else{
+            return false;
+          }
+        } catch(err){
+          if(this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == artikel.Id && obj.desktopID == artikel.desktopID && obj.kassenprojektID == artikel.kassenprojektID) < 0){
+            let artikelSichtbarkeit = {
+              artikelId: artikel.Id,
+              kassenprojektID: artikel.kassenprojektID,
+              desktopID: artikel.desktopID,
+              sichtbar: true
+            }
+            this.artikelItemsSichtbarkeit.push(artikelSichtbarkeit);
+            this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
+          }
+        }
+      } else{
+        let pfand = item;
+        try{
+          if(this.pfandItemsSichtbarkeit != undefined && this.pfandItemsSichtbarkeit.find(obj=>obj.pfandId == pfand.Id && obj.desktopID == pfand.desktopID && obj.kassenprojektID == pfand.kassenprojektID).sichtbar){
+            return true;
+          } else{
+            return false;
+          }
+        } catch(err){
+          if((this.pfandItemsSichtbarkeit.findIndex(obj=>obj.pfandId == pfand.Id && obj.desktopID == pfand.desktopID && obj.kassenprojektID == pfand.kassenprojektID)) < 0){
+            let pfandSichtbarkeit = {
+              pfandId: pfand.Id,
+              kassenprojektID: pfand.kassenprojektID,
+              desktopID: pfand.desktopID,
+              sichtbar: false
+            }
+            this.pfandSichtbarkeit.push(pfandSichtbarkeit);
+            this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+          }
+        }
+      }
+    },
+    showLetzteBestellung(){
+      this.artikelAuswahl = this.letzteBestellung.artikelAuswahl;
+      this.pfandAuswahl = this.letzteBestellung.pfandAuswahl;
+      this.rechnungsbetrag = this.letzteBestellung.rechnungsbetrag;
+      if((this.artikelAuswahl == undefined || this.artikelAuswahl.length == 0) && (this.pfandAuswahl == undefined || this.pfandAuswahl.length == 0)){
+        let belege = JSON.parse(this.$store.state.kasse.belegItems);
+        let index = belege.length - 1;
+        let stornoBeleg;
+        while(index >= 0){
+          if(belege[index].kassenprojektID == this.$props.selectedKassenprojekt.Id && belege[index].desktopID ==this.$props.selectedDesktop.Id){
+            stornoBeleg = belege[belege.length - 1];
+            break;
+          }
+        }
+        if(index > 0){
+          this.artikelAuswahl = stornoBeleg.artikelAuswahl;
+          this.pfandAuswahl = stornoBeleg.pfandAuswahl;
+          this.rechnungsbetrag = stornoBeleg.rechnungsbetrag;
+        }
+      }
+    },
+    async stornoLetzte(){
+      let belege = JSON.parse(this.$store.state.kasse.belegItems);
+      if(!belege || belege == undefined || belege.length <= 0){
+        return;
+      } else{
+        let index = belege.length - 1;
+        let stornoBeleg;
+        while(index >= 0){
+          if(belege[index].kassenprojektID == this.$props.selectedKassenprojekt.Id && belege[index].desktopID ==this.$props.selectedDesktop.Id){
+            stornoBeleg = belege[belege.length - 1];
+            break;
+          }
+        }
+        if(index > 0){
+          await Swal.fire({
+            title: "Bestellung mit Rechnungsbetrag: " + stornoBeleg.rechnungsbetrag + " € wirklich stornieren?",
+            showCancelButton: true,
+            confirmButtonText: "Stornieren",
+            cancelButtonText: `Abbrechen`,
+            confirmButtonColor: `var(--swal2-deny-button-background-color)`
+          }).then((result)=>{
+            if(result.isConfirmed){
+              belege.splice(index, 1);
+              
+              Swal.fire({
+                title: "Rechnung storniert",
+                text: "Die letzte Rechnung mit dem Rechnungsbetrag: " + stornoBeleg.rechnungsbetrag + " € wurde storniert.",
+                icon: "info"
+              });
+              this.artikelAuswahl = [];
+              this.pfandAuswahl = [];
+              this.rechnungsbetrag = 0.00;
+              this.$store.commit('kasse/SET_BELEG_ITEMS',JSON.stringify(belege));
+              this.belegItems = belege;
+            }
+          });
+        }
+      }
     }
   },
   created(){
@@ -722,6 +796,25 @@ export default {
           text: "Sie können über Menü->Daten neue Artikel anlegen",
           icon: "info"
         });
+    }
+  },
+  mounted(){
+    const showTotalEl = document.getElementById("showTotal");
+    const zusatzEl = document.getElementById("zusatzButtons");
+
+    if (showTotalEl && zusatzEl) {
+      const showTotalHeight = showTotalEl.offsetHeight;
+      const zusatzHeight = zusatzEl.offsetHeight;
+
+      // totalCont-Höhe nur so hoch wie showTotal
+      this.$refs.totalCont.style.height = `${showTotalHeight}px`;
+
+      // totalUp initial = 0 (nur showTotal sichtbar)
+      this.totalUp = 0;
+
+      // MAX_TOTAL_UP = Höhe von zusatzButtons
+      this.MAX_TOTAL_UP = zusatzHeight + 10;
+      this.MIN_TOTAL_UP = 0;
     }
   }
 };
@@ -791,7 +884,15 @@ export default {
 
     .status {
       display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 12px; cursor:default;
-      .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+      .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+      .online{
+        background: var(--ok);
+      }
+
+      .offline{
+        background: var(--danger);
+      }
     }
   }
 
@@ -827,26 +928,94 @@ export default {
     }
   }
 
+  .warenkorb-scroll{
+    max-height: 65vh;
+  }
+
+  #zusatzButtons{
+    padding-bottom: 0;
+    margin-bottom: 0;
+    div{
+      display: flex;
+      justify-content: space-between;
+      button{
+        width: 50%;
+      }
+    }
+  }
+
   .warenkorb {
     display: grid;
     grid-template-rows: 1fr auto;
     background: var(--warenkorb);
     box-shadow: var(--shadow);
     z-index: 0;
+    position: relative;
 
     &-scroll { overflow: auto; padding: 14px; }
 
     .total {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 14px 16px; border-top: 1px solid var(--border);
+      padding: 14px 16px;
       font-weight: 700; font-size: 18px;
       cursor: default;
     }
 
+    .totalCont{
+      border-top: 1px solid var(--border);
+    }
+
     .actions {
-      display: flex; gap: 12px; padding: 0 16px 16px 16px;
+      padding: 0 16px 4px 16px; 
+      div{
+        margin-bottom: 0.5rem;
+        display: flex; gap: 12px; 
+      }
     }
   }
+
+  /* Handle, das über der border-top von .totalCont liegt */
+  .total-handle {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(var(--total-up)); /* 54px ist die Höhe der .total (header) - evtl anpassen */
+    z-index: 6;
+    cursor: row-resize;
+  }
+
+  /* Handle INSIDE totalCont: genau über der border-top */
+  .totalCont .total-handle {
+    position: absolute;
+    top: -8px;                     /* halbe Höhe des handles über der border-top */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    cursor: row-resize;
+  }
+
+  /* totalCont: wird nach oben verschoben */
+  .totalCont {
+    //position: fixed;
+    border-top: 1px solid var(--border);
+    background: var(--warenkorb);
+    will-change: transform;
+    transition: transform 0s; /* kein Übergang beim Ziehen; wenn gewünscht: add easing beim release */
+    z-index: 5;
+    bottom: 0px;
+    min-width: 100%;
+    position: absolute;
+    /* falls du einen "Sichtbarkeitsclip" brauchst: */
+    /* overflow: hidden; */
+  }
+
+  /* kleine optische Anpassung: der Handle soll genau über der border-top sitzen */
+  .totalCont::before {
+    content: "";
+    display: block;
+    height: 0;
+  }
+
 
   .btn {
     appearance: none; border: 0; cursor: pointer;
@@ -854,6 +1023,8 @@ export default {
     &-primary { background: var(--brand); color: #fff; }
     &-danger  { background: var(--danger); color: #fff; }
     &-bestaetigen { width: 100%; }
+    &-success {background: var(--success); color: #fff;}
+    &-default {background: var(--default); color: #fff;}
   }
 
   .bottom-bar {

@@ -27,22 +27,22 @@
       </button>
 
       <nav class="navList" aria-label="Navigation">
-        <button class="navItem" :class="daten?'navItem-active':''" @click="daten = true">
+        <button class="navItem" :class="daten?'navItem-active':''" @click="daten = true; anzeige = false; admin = false; weitere = false;">
           <span class="navIcon">📝</span>
           <span class="navLabel">Daten</span>
         </button>
 
-        <button class="navItem">
+        <button class="navItem" :class="anzeige?'navItem-active':''" @click="anzeige = true; daten = false; admin = false; weitere = false;">
           <span class="navIcon">🖥️</span>
           <span class="navLabel">Anzeige</span>
         </button>
 
-        <button class="navItem">
+        <button class="navItem" :class="admin?'navItem-active':''" @click="anzeige = false; daten = false; admin = true; weitere = false;">
           <span class="navIcon">🧭</span>
           <span class="navLabel">Adminkonsole</span>
         </button>
 
-        <button class="navItem">
+        <button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true;">
           <span class="navIcon">⚙️</span>
           <span class="navLabel">Erweiterte Einstellungen</span>
         </button>
@@ -68,6 +68,7 @@
             <div class="itemContainer" :data-id="item.id" >
               <div class="itemHeader">
                 <button class="loeschen" @click="this.deleteArtikel(item)">🗑</button>
+                <button class="colorWheel" @click="this.openColorPicker(item)"><div class="dot"  :style="'background-color: ' + ((darkMode)?item.bgcolor:item.color)"></div></button>
 
                 <span class="dragHandle" title="Ziehen">⠿</span>
                 <input
@@ -114,6 +115,7 @@
             <div class="itemContainer" :data-id="item.id" >
               <div class="itemHeader">
                 <button class="loeschen" @click="this.deletePfand(item)">🗑</button>
+                <button class="colorWheel" @click="this.openColorPicker(item)"><div class="dot"  :style="'background-color: ' + ((darkMode)?item.bgcolor:item.color)"></div></button>
 
                 <span class="dragHandle" title="Ziehen">⠿</span>
                 <input
@@ -141,12 +143,49 @@
           </template>
         </draggable>
       </div>
+      <div id="anzeige" v-if="anzeige">
+        <h1>Anzeige</h1>
+        <div class="anzeigeTitle">
+          <h2>Artikel/Pfand:</h2>
+          <button @click="this.itemReset()">Reset</button>
+        </div>
+        <div id="itemAnzeige">
+          <div>
+            <p>Schriftgröße Titel:</p>
+            <span>{{ itemTitleSize }}</span>
+            <input type="range" min="12" max="60" class="slider" v-model="itemTitleSize" />
+          </div>
+          <div>
+            <p>Schriftgröße Preis:</p>
+            <span>{{ itemPriceSize }}</span>
+            <input type="range" min="12" max="50" class="slider" v-model="itemPriceSize" />
+          </div>
+          <div>
+            <p>Höhe</p>
+            <span>{{ itemHeight }}</span>
+            <input type="range" min="90" max="180" class="slider" v-model="itemHeight" />
+          </div>
+          <div>
+            <p>Breite</p>
+            <span>{{ itemWidth }}</span>
+            <input type="range" min="200" max="300" class="slider" v-model="itemWidth" />
+          </div>
+        </div>
+      </div>
+      <div id="admin" v-if="admin">
+        <h1>Adminkonsole</h1>
+      </div>
+      <div id="weitere" v-if="weitere">
+        <h1>Erweiterte Einstellungen</h1>
+      </div>
     </main>
   </div>
 </template>
 
 <script>
 import draggable from "vuedraggable";
+import { mapState } from 'vuex';
+import Swal from 'sweetalert2';
 
 export default {
   name: "Menu",
@@ -171,12 +210,16 @@ export default {
       default: 64,
     },
     artikelItemsSichtbarkeit: Array,
-    pfandItemsSichtbarkeit: Array
+    pfandItemsSichtbarkeit: Array,
+    darkMode: Boolean
   },
   data() {
     return {
       collapsed: false,
       daten: true,
+      anzeige: false,
+      admin: false,
+      weitere: false,
       // items Array: nutze id, name, preis, pfand
       items: [
         { id: 1, name: "Cola", preis: 1.99, pfand: "0.25" },
@@ -188,6 +231,11 @@ export default {
       ],
       artikelItems: [],
       pfandItems: [],
+
+      itemTitleSize: 18,
+      itemPriceSize: 15,
+      itemHeight: 100,
+      itemWidth: 220
     };
   },
   methods: {
@@ -218,9 +266,46 @@ export default {
     },
     deletePfand(item){
       this.$emit('deletePfand',item);
+    },
+    itemReset(){
+      this.itemTitleSize = '18';
+      this.itemPriceSize = '15';
+      this.itemHeight = '100';
+      this.itemWidth= '220';
+    },
+    async openColorPicker(item) {
+      let colorVal = (this.$props.darkMode)?item.dmcolor:item.color;
+      const { value: color } = await Swal.fire({
+        title: 'Farbe wählen',
+        html: `<input id="swal-color" type="color" value="${colorVal}" style="width:100%; height:56px; border:none; padding:0; background:transparent;">`,
+        showCancelButton: true,
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Clear',
+        focusConfirm: false,
+        preConfirm: () => {
+          const el = document.getElementById('swal-color');
+          return el ? el.value : null;
+        }
+      });
+
+      if (color) {
+        if(this.$props.darkMode){
+          item.dmcolor = color;
+        } else{
+          item.color = color; // Beispiel: setzen in component state
+        }
+      } else {
+        if(this.$props.darkMode){
+          item.dmcolor = undefined;
+        } else{
+          item.color = undefined;
+        }
+      }
     }
   },
   computed: {
+    ...mapState('item', ['height', 'titleSize', 'priceSize', 'width']),
+
     cssVars() {
       return {
         "--headerHeight": `${this.headerHeight}px`,
@@ -233,6 +318,11 @@ export default {
     this.artikelItems = this.$props.artikel;
     this.pfandItems = this.$props.pfand;
     console.log(this.artikelItems);
+
+    this.itemTitleSize = this.$store.state.item.titleSize;
+    this.itemPriceSize = this.$store.state.item.priceSize;
+    this.itemHeight = this.$store.state.item.height;
+    this.itemWidth = this.$store.state.item.width;
   },
   watch: {
     artikel(newVal) {
@@ -247,7 +337,27 @@ export default {
             this.$emit('setPfandItems', this.pfandItems);
         }
     },
-},
+    itemTitleSize(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_TITLE_SIZE', newVal);
+      }
+    },
+    itemPriceSize(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_PRICE_SIZE', newVal);
+      }
+    },
+    itemHeight(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_HEIGHT', newVal);
+      }
+    },
+    itemWidth(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_WIDTH', newVal);
+      }
+    }
+  },
 
 };
 </script>
@@ -511,9 +621,69 @@ h3{
   pointer-events: all;
 }
 
+
+.colorWheel{
+  position: absolute;
+  left: 70%;
+  z-index: 90;
+  transform: translateX(-50%);
+  top: -1.5rem;
+  width: 2rem;
+  height: 2rem;
+  border-color: var(--border);
+  color: var(--ink);
+  background-color: var(--items);
+  border-radius: 90px;
+  font-size: larger;
+  opacity: 0;
+  pointer-events: all;
+  transition: opacity 0.2s ease;
+  padding: 6px;
+}
+
+.itemContainer:hover .colorWheel{
+  opacity: 1;
+  pointer-events: all;
+  transition: opacity 0.2s ease;
+}
+
+.itemContainer:hover .colorWheel,
+.itemContainer .colorWheel:hover {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#itemAnzeige{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.anzeigeTitle{
+  display: flex;
+  justify-content: space-between;
+
+  button{
+    width: auto;
+    height: 2.3rem;
+    padding: 3px 6px;
+    font-size: larger;
+    background-color: var(--items);
+    color: var(--ink);
+    border-radius: 20px;
+    border-color: var(--border);
+    margin-top: 16px;
+  }
+}
+
+  .dot { height: 100%; width: 100%; border-radius: 50%; background: rgb(216, 216, 216); }
+
 /* Very small screens: hide sidebar */
 @media (max-width: 700px) {
   .menuContainer {
+    grid-template-columns: 0 1fr;
+  }
+  #itemAnzeige{
     grid-template-columns: 0 1fr;
   }
   .leftContainer {

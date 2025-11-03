@@ -1,8 +1,8 @@
 <template>
   <div :style="cssVars">
-    <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword"/>
-    <DesktopAuswahl v-if="this.desktopAuswahl" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
-    <KassensystemMain v-if="this.kassensystemMain" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @switchDesktop="this.switchDesktop"/>
+    <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword"/>
+    <DesktopAuswahl v-if="this.desktopAuswahl" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
+    <KassensystemMain v-if="this.kassensystemMain" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @switchDesktop="this.switchDesktop"/>
     <button class="backButton fa" @click="this.goBack()">&#xf015</button>
   </div>
 </template>
@@ -50,7 +50,8 @@ export default {
       selectedDesktop:{},
       selectedKasse:{},
       darkMode: false,
-      fullscreen: null
+      fullscreen: null,
+      online: false
     };
   },
   computed:{
@@ -71,6 +72,8 @@ export default {
           '--muted': '#8b8f97',
           '--brand': '#0b66ff',
           '--danger': '#d21f3c',
+          '--success': '#006b00',
+          '--default': '#8a8a8a',
           '--ok': '#2ecc71',
           '--handle': '#5a5f68',
           '--border': '#e5e7eb',
@@ -93,6 +96,8 @@ export default {
           '--muted': '#bfbfbf',
           '--brand': '#0b66ff',
           '--danger': '#d21f3c',
+          '--success': '#006b00',
+          '--default': '#8a8a8a',
           '--ok': '#2ecc71',
           '--handle': '#5a5f68',
           '--border': '#474747',

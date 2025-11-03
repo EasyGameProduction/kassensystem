@@ -1,19 +1,19 @@
 <template>
-    <div class="auswahlItem" :style="cssVars">
-        <div class="thumb">
-            <img :src="item.image || cssVars['--placeholder']" :alt="item.name || 'Kassenprojekt'" />
-        </div>
-        <div class="meta">
-            <h3 class="name">{{ item.name || item.bezeichnung || 'Projekt' }}</h3>
-            <button class="more" @click.stop="this.more(item)">&hellip;</button>
-        </div>
+  <div class="auswahlItem" :style="cssVars" >
+      <div class="thumb">
+          <img :src="item.image || cssVars['--placeholder']" :alt="item.name || 'Kassenprojekt'" />
+      </div>
+      <div class="meta">
+          <h3 class="name">{{ item.name || item.bezeichnung || 'Projekt' }}</h3>
+          <button class="more" @click.stop="this.more(item)">&hellip;</button>
+      </div>
 
-        <div class="moreContainer" v-if="activeMoreId == item.Id">
-            <!--<div class="moreItems">Bild ändern</div>-->
-            <div class="moreItems" @click.stop="this.changeName(item)">Namen ändern</div>
-            <div class="moreItems" @click.stop="this.changePassword(item)">Passwort ändern</div>
-            <div class="moreItems" @click.stop="this.delete(item)">Löschen</div>
-        </div>
+      <div class="moreContainer" v-if="activeMoreId == item.Id">
+          <!--<div class="moreItems">Bild ändern</div>-->
+          <div class="moreItems" @click.stop="this.changeName(item)">Namen ändern</div>
+          <div class="moreItems" @click.stop="this.changePassword(item)">Passwort ändern</div>
+          <div class="moreItems" @click.stop="this.delete(item)">Löschen</div>
+      </div>
     </div>
 </template>
 

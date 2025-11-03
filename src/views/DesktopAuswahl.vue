@@ -6,7 +6,7 @@
       </div>
       <div class="title">Desktop wählen</div>
       <div class="right-actions">
-        <div class="status"><span class="dot"></span> online</div>
+        <div class="status"><span class="dot" :class="(online)?'online':'offline'"></span> {{ (online)?'online':'offline' }}</div>
         <label class="switch">
           <input :checked="darkModeDefault" id="checkbox" type="checkbox" v-model="darkMode" @change="$emit('switchDarkmode',darkMode)"/>
           <span class="slider">
@@ -47,6 +47,7 @@ export default {
   props: {
     kassenprojekt: Object,
     darkModeDefault: Boolean,
+    online: Boolean
   },
   data() {
     return {
@@ -265,7 +266,15 @@ export default {
     .menuButtonDeactive { transform: rotate(0deg); transition: transform .4s; }
 
     .status { display: flex; align-items: center; gap: 6px; color: var(--ink, #222); font-size: 12px; cursor:default;
-      .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok, #2ecc71); }
+      .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+      .online{
+        background: var(--ok);
+      }
+
+      .offline{
+        background: var(--danger);
+      }
     }
   }
 
