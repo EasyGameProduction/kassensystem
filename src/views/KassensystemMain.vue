@@ -79,7 +79,7 @@
       <!-- Rechte Seite (Bon) -->
       <aside class="warenkorb" id="rightPane">
         <div class="warenkorb-scroll">
-          <WarenkorbItem v-for="artikel in this.artikelAuswahl" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" :items="this.artikelItems" :pfandItem="this.pfandItems.find(p=>p.Id == artikel.pfandId)" @removeItem="this.removeWArtikel" @removeAll="this.removeWAllArtikel" :lineColor="'blue'"/>
+          <WarenkorbItem v-for="artikel in this.artikelAuswahl" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" :items="this.artikelItems" :pfandItem="this.getPfandItem(artikel.pfandId)" @removeItem="this.removeWArtikel" @removeAll="this.removeWAllArtikel" :lineColor="'blue'"/>
           <WarenkorbItem v-for="pfand in this.pfandAuswahl" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" :items="this.pfandItems" @removeItem="this.removeWPfand" @removeAll="this.removeWAllPfand" :lineColor="'green'"/>
         </div>
 
@@ -861,6 +861,13 @@ export default {
         this.$store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(belege));
       } catch(err){
         return;
+      }
+    },
+    getPfandItem(pfandId){
+      try{
+        return this.pfandItems.find(p=>p.Id == pfandId)
+      } catch(err){
+        return undefined;
       }
     }
   },
