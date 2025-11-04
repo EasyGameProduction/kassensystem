@@ -1028,7 +1028,7 @@ export default {
     grid-template-rows: 1fr auto;
     background: var(--warenkorb);
     box-shadow: var(--shadow);
-    z-index: 0;
+    z-index: 10;
     position: relative;
 
     &-scroll { overflow: auto; padding: 14px; }
@@ -1136,6 +1136,7 @@ export default {
 
   .v-handle { 
     cursor: col-resize; background-color: var(--warenkorb); 
+    z-index: 10;
   }
   .h-handle {
     position: absolute; left: 0; right: 0;
