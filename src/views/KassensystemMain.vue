@@ -122,7 +122,7 @@
     </main>
   </div>
 
-  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode"/>
+  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" @clearArtikelSichtbarkeit="this.clearArtikelSichtbarkeit" @clearPfandSichtbarkeit="this.clearPfandSichtbarkeit" @deleteBelege="this.deleteBelege"/>
   <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.getDesktops()" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
   <Rechner v-if="this.rechnerActive" :active="this.rechnerActive" :rechnerBetrag="this.rechnungsbetrag" @closeRechner="this.rechnerActive = !this.rechnerActive"/>
 </template>
@@ -455,7 +455,7 @@ export default {
       this.removeWAll();
     },
     async switchDesktop(desktop){
-      await this.$emit('switchDesktop', desktop);
+      await this.$emit('selectDesktop', desktop);
       this.desktopSwitchActive = false;
       this.getArtikelStore();
       this.getPfandStore();
@@ -513,6 +513,20 @@ export default {
           }
         });
 
+        let delItems = new Array();
+
+        itemsStore.forEach(item=>{
+          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
+          if(index < 0){
+            delItems.push({index: index});
+          }
+        })
+
+        delItems.sort((a,b) =>b.index - a.index);
+        delItems.forEach(obj=>{
+          itemsStore.splice[obj.index, 1];
+        })
+
         itemsStore = itemsStore.filter(storeItem => {
           if (
             storeItem.desktopID !== this.$props.selectedDesktop.Id ||
@@ -546,6 +560,19 @@ export default {
           }
         });
 
+        let delItems = new Array();
+        itemsStore.forEach(item=>{
+          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
+          if(index < 0){
+            delItems.push({index: index});
+          }
+        })
+
+        delItems.sort((a,b) =>b.index - a.index);
+        delItems.forEach(obj=>{
+          itemsStore.splice[obj.index, 1];
+        })
+
         itemsStore = itemsStore.filter(storeItem => {
           if (
             storeItem.desktopID !== this.$props.selectedDesktop.Id ||
@@ -577,7 +604,7 @@ export default {
       }
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
     },
-    addArtikelItem(){
+    addArtikelItem(artikelDefault){
       let newId;
       if(this.artikelItems != undefined && this.artikelItems.length > 0){
         newId = +this.artikelItems[this.artikelItems.length-1].Id + 1;
@@ -595,6 +622,13 @@ export default {
         pfandId: undefined
       }
 
+      if(artikelDefault != undefined && artikelDefault != null){
+        artikel.bezeichnung = artikelDefault.bezeichnung;
+        artikel.preis = artikelDefault.preis;
+        artikel.pfandId = artikelDefault.pfandId
+      }
+
+
       let artikelSichtbarkeit = {
         artikelId: artikel.Id,
         kassenprojektID: artikel.kassenprojektID,
@@ -610,7 +644,7 @@ export default {
       this.setArticleItems(this.artikelItems);
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
     },
-    addPfandItem(){
+    addPfandItem(pfandDefault){
       let newId;
       if(this.pfandItems != undefined && this.pfandItems.length > 0){
         newId = +this.pfandItems[this.pfandItems.length-1].Id + 1;
@@ -625,7 +659,12 @@ export default {
         desktopID: this.$props.selectedDesktop.Id,
         bezeichnung : undefined,
         preis: undefined,
-        pfandId: undefined
+        //pfandId: undefined
+      }
+
+      if(pfandDefault != undefined && pfandDefault != null){
+        pfand.bezeichnung = pfandDefault.bezeichnung;
+        pfand.preis = pfandDefault.preis;
       }
 
       let pfandSichtbarkeit = {
@@ -662,15 +701,19 @@ export default {
     deletePfand(item){
       let index = this.pfandItems.findIndex(obj=>obj.Id == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
 
-      let exists = this.artikelItems.findIndex(obj=>obj.pfandId == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID)
+      try{
+        let exists = this.artikelItems.findIndex(obj=>obj.pfandId == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID)
 
-      if(exists >= 0){
-        Swal.fire({
-          title: "Nicht löschbar!",
-          text: "Wird noch in einem anderen Objekt verwendet",
-          icon: "error"
-        });
-        return;
+        if(exists >= 0){
+          Swal.fire({
+            title: "Nicht löschbar!",
+            text: "Wird noch in einem anderen Objekt verwendet",
+            icon: "error"
+          });
+          return;
+        }
+      } catch(err){
+        
       }
 
       this.pfandItems.splice(index, 1);
@@ -691,15 +734,19 @@ export default {
             return false;
           }
         } catch(err){
-          if(this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == artikel.Id && obj.desktopID == artikel.desktopID && obj.kassenprojektID == artikel.kassenprojektID) < 0){
-            let artikelSichtbarkeit = {
-              artikelId: artikel.Id,
-              kassenprojektID: artikel.kassenprojektID,
-              desktopID: artikel.desktopID,
-              sichtbar: true
+          try{
+            if(this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == artikel.Id && obj.desktopID == artikel.desktopID && obj.kassenprojektID == artikel.kassenprojektID) < 0){
+              let artikelSichtbarkeit = {
+                artikelId: artikel.Id,
+                kassenprojektID: artikel.kassenprojektID,
+                desktopID: artikel.desktopID,
+                sichtbar: true
+              }
+              this.artikelItemsSichtbarkeit.push(artikelSichtbarkeit);
+              this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
             }
-            this.artikelItemsSichtbarkeit.push(artikelSichtbarkeit);
-            this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
+          } catch(err2){
+            return;
           }
         }
       } else{
@@ -711,15 +758,19 @@ export default {
             return false;
           }
         } catch(err){
-          if((this.pfandItemsSichtbarkeit.findIndex(obj=>obj.pfandId == pfand.Id && obj.desktopID == pfand.desktopID && obj.kassenprojektID == pfand.kassenprojektID)) < 0){
-            let pfandSichtbarkeit = {
-              pfandId: pfand.Id,
-              kassenprojektID: pfand.kassenprojektID,
-              desktopID: pfand.desktopID,
-              sichtbar: false
+          try{
+            if((this.pfandItemsSichtbarkeit.findIndex(obj=>obj.pfandId == pfand.Id && obj.desktopID == pfand.desktopID && obj.kassenprojektID == pfand.kassenprojektID)) < 0){
+              let pfandSichtbarkeit = {
+                pfandId: pfand.Id,
+                kassenprojektID: pfand.kassenprojektID,
+                desktopID: pfand.desktopID,
+                sichtbar: false
+              }
+              this.pfandSichtbarkeit.push(pfandSichtbarkeit);
+              this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
             }
-            this.pfandSichtbarkeit.push(pfandSichtbarkeit);
-            this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+          } catch(err2){
+            return;
           }
         }
       }
@@ -782,6 +833,34 @@ export default {
             }
           });
         }
+      }
+    },
+    clearArtikelSichtbarkeit(){
+      try{
+        this.artikelItemsSichtbarkeit = JSON.parse(this.$store.state.kasse.artikelItemsSichtbarkeit);
+        this.artikelItemsSichtbarkeit = this.artikelItemsSichtbarkeit.filter(obj=>obj.kassenprojektID != this.$props.selectedKassenprojekt.Id && obj.desktopID != this.$props.selectedDesktop.Id);
+        this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
+      } catch(err){
+
+      }
+    },
+    clearPfandSichtbarkeit(){
+      try{
+        this.pfandItemsSichtbarkeit = JSON.parse(this.$store.state.kasse.pfandItemsSichtbarkeit);
+        this.pfandItemsSichtbarkeit = this.pfandItemsSichtbarkeit.filter(obj=>obj.kassenprojektID != this.$props.selectedKassenprojekt.Id && obj.desktopID != this.$props.selectedDesktop.Id);
+        this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+      } catch(err){
+
+      }
+    },
+    deleteBelege(){
+      try{
+        let belege = JSON.parse(this.$store.state.kasse.belegItems);
+        belege = belege.filter(obj=>obj.kassenprojektID != this.$props.selectedKassenprojekt.Id && obj.desktopID != this.$props.selectedDesktop.Id);
+        this.belegItems = belege;
+        this.$store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(belege));
+      } catch(err){
+        return;
       }
     }
   },

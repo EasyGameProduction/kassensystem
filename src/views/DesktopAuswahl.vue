@@ -51,20 +51,7 @@ export default {
   },
   data() {
     return {
-        desktops: [
-            {
-                Id: 1,
-                kassenprojektID: 1,
-                name: 'Getränke',
-                image: 'https://www.honest-rare.de/cdn-cgi/image/fit=pad,background=transparent,w=1200,h=706/images/blog/12/was-ist-bier-titelbild.jpg'
-            },
-            {
-                Id: 2,
-                kassenprojektID: 1,
-                name: 'Essen',
-                image: 'https://images.lecker.de/deutsche-kueche-b4,id=3b91deae,b=lecker,w=1600,ca=0,5.58,100,80.42,rm=sk.jpeg'
-            }
-        ],
+      desktops: [],
 
       menuActive: false,
       darkMode: this.darkModeDefault,

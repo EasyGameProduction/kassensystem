@@ -26,6 +26,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 
 export default {
     name: 'WarenkorbItem',
@@ -48,10 +49,16 @@ export default {
         }
     },
     computed:{
+    ...mapState('witem', ['anzahlSize', 'titleSize', 'priceSize', 'pfandSize']),
+
         cssVars() {
       // Alle Variablen zentral binden; Farben etc. können ebenfalls via Theme aus Vuex kommen
             return {
                 '--lineColor': `${this.$props.lineColor}`,
+                '--anzahlSize': `${this.anzahlSize}px`,
+                '--bezeichnungSize': `${this.titleSize}px`,
+                '--priceSize': `${this.priceSize}px`,
+                '--pfandSize': `${this.pfandSize}px`,
             };
         },
         // inline style applied to sliding content
@@ -235,21 +242,23 @@ export default {
     #anzahl{
         margin-right: 0.35rem;
         color: var(--ink);
+        font-size: var(--anzahlSize);
     }
 
     #bezeichnung{
         text-align: left;
         color: var(--ink);
+        font-size: var(--bezeichnungSize);
     }
 
     #artikelPreis{
-        font-size: larger;
+        font-size: var(--priceSize);
         color: var(--ink);
     }
 
     #pfandPreis{
         color: var(--muted);
-        font-size: 12.5px;
+        font-size: var(--pfandSize);
     }
 
     .preisZeile{

@@ -2,10 +2,11 @@
 import { createStore } from 'vuex';
 import kasse from './modules/kasse';
 import item from './modules/item';
+import witem from './modules/witem';
 import merge from 'lodash.merge'; // <-- das ist das kleine Paket
 
 const store = createStore({
-  modules: { kasse, item }
+  modules: { kasse, item, witem }
 });
 
 const savedStateRaw = localStorage.getItem('vuex-state');

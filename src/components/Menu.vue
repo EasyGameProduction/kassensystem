@@ -27,22 +27,27 @@
       </button>
 
       <nav class="navList" aria-label="Navigation">
-        <button class="navItem" :class="daten?'navItem-active':''" @click="daten = true; anzeige = false; admin = false; weitere = false;">
+        <button class="navItem" :class="daten?'navItem-active':''" @click="daten = true; anzeige = false; admin = false; weitere = false; belege = false">
           <span class="navIcon">📝</span>
           <span class="navLabel">Daten</span>
         </button>
 
-        <button class="navItem" :class="anzeige?'navItem-active':''" @click="anzeige = true; daten = false; admin = false; weitere = false;">
+        <button class="navItem" :class="anzeige?'navItem-active':''" @click="anzeige = true; daten = false; admin = false; weitere = false; belege = false">
           <span class="navIcon">🖥️</span>
           <span class="navLabel">Anzeige</span>
         </button>
 
-        <button class="navItem" :class="admin?'navItem-active':''" @click="anzeige = false; daten = false; admin = true; weitere = false;">
+        <button class="navItem" :class="admin?'navItem-active':''" @click="anzeige = false; daten = false; admin = true; weitere = false; belege = false">
           <span class="navIcon">🧭</span>
           <span class="navLabel">Adminkonsole</span>
         </button>
 
-        <button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true;">
+        <button class="navItem" :class="belege?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = false; belege = true">
+          <span class="navIcon">🧾</span>
+          <span class="navLabel">Belege</span>
+        </button>
+
+        <button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true; belege = false">
           <span class="navIcon">⚙️</span>
           <span class="navLabel">Erweiterte Einstellungen</span>
         </button>
@@ -52,7 +57,7 @@
     <main class="rightContainer" role="main">
       <div id="daten" v-if="daten">
         <h1>Daten</h1>
-        <div class="datenHeader"><h3>Artikel:</h3><button class="plusButton" @click="this.addArtikel()">+</button></div>
+        <div class="datenHeader"><h3>Artikel:</h3><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📤</button><button class="importButton" @click="this.importWithSwal('artikel')">📲</button></div></div>
 
         <!-- draggable wrapper: v-model linked to items -->
         <draggable
@@ -101,7 +106,7 @@
           </template>
         </draggable>
         <br/>
-        <div class="datenHeader"><h3>Pfand:</h3><button class="plusButton" @click="this.addPfand()">+</button></div>
+        <div class="datenHeader"><h3>Pfand:</h3><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📲</button></div></div>
         <draggable
           v-model="pfandItems"
           item-key="id"
@@ -171,9 +176,45 @@
             <input type="range" min="200" max="300" class="slider" v-model="itemWidth" />
           </div>
         </div>
+        <br><br>
+        <div class="anzeigeTitle">
+          <h2>Warenkorbitem:</h2>
+          <button @click="this.witemReset()">Reset</button>
+        </div>
+        <div id="itemAnzeige">
+          <div>
+            <p>Schriftgröße Anzahl:</p>
+            <span>{{ witemAnzahlSize }}</span>
+            <input type="range" min="12" max="30" class="slider" v-model="witemAnzahlSize" />
+          </div>
+          <div>
+            <p>Schriftgröße Bezeichnung:</p>
+            <span>{{ witemTitleSize }}</span>
+            <input type="range" min="12" max="30" class="slider" v-model="witemTitleSize" />
+          </div>
+          <div>
+            <p>Schriftgröße Preis:</p>
+            <span>{{ witemPriceSize }}</span>
+            <input type="range" min="12" max="24" class="slider" v-model="witemPriceSize" />
+          </div>
+          <div>
+            <p>Schriftgröße Pfand</p>
+            <span>{{ witemPfandSize }}</span>
+            <input type="range" min="10" max="20" step="0.5" class="slider" v-model="witemPfandSize" />
+          </div>
+        </div>
       </div>
       <div id="admin" v-if="admin">
         <h1>Adminkonsole</h1>
+        <Adminkonsole v-if="active" :artikel="this.artikelItems" :pfand="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop"/>
+      </div>
+      <div id="belege" v-if="belege">
+        <h1>Belege</h1>
+        <div class="anzeigeTitle">
+          <h2>{{ selectedKassenprojekt.name }} - {{ selectedDesktop.name }}:</h2>
+          <button @click="this.belegeLoeschen()">Löschen</button>
+        </div>
+        <BelegAnzeige :artikelItems="this.artikelItems" :pfandItems="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars"/>
       </div>
       <div id="weitere" v-if="weitere">
         <h1>Erweiterte Einstellungen</h1>
@@ -186,10 +227,16 @@
 import draggable from "vuedraggable";
 import { mapState } from 'vuex';
 import Swal from 'sweetalert2';
+import Adminkonsole from "./Menu/Adminkonsole.vue";
+import BelegAnzeige from "./Menu/BelegAnzeige.vue";
 
 export default {
   name: "Menu",
-  components: { draggable },
+  components: { 
+    draggable,
+    Adminkonsole,
+    BelegAnzeige
+   },
   props: {
     artikel: Array,
     pfand: Array,
@@ -211,7 +258,9 @@ export default {
     },
     artikelItemsSichtbarkeit: Array,
     pfandItemsSichtbarkeit: Array,
-    darkMode: Boolean
+    darkMode: Boolean,
+    selectedKassenprojekt: Object,
+    selectedDesktop: Object
   },
   data() {
     return {
@@ -220,6 +269,7 @@ export default {
       anzeige: false,
       admin: false,
       weitere: false,
+      belege: false,
       // items Array: nutze id, name, preis, pfand
       items: [
         { id: 1, name: "Cola", preis: 1.99, pfand: "0.25" },
@@ -235,7 +285,14 @@ export default {
       itemTitleSize: 18,
       itemPriceSize: 15,
       itemHeight: 100,
-      itemWidth: 220
+      itemWidth: 220,
+
+      witemAnzahlSize: 0,
+      witemTitleSize: 0,
+      witemPriceSize: 0,
+      witemPfandSize: 0,
+
+      importedData: null
     };
   },
   methods: {
@@ -273,6 +330,12 @@ export default {
       this.itemHeight = '100';
       this.itemWidth= '220';
     },
+    witemReset(){
+      this.witemAnzahlSize = '18';
+      this.witemTitleSize = '18';
+      this.witemPriceSize = '16';
+      this.witemPfandSize = '12.5';
+    },
     async openColorPicker(item) {
       let colorVal = (this.$props.darkMode)?item.dmcolor:item.color;
       const { value: color } = await Swal.fire({
@@ -301,10 +364,311 @@ export default {
           item.color = undefined;
         }
       }
+    },
+    exportData(data, name){
+      let array = Array.isArray(data) ? data : JSON.parse(data);
+
+      array = JSON.parse(JSON.stringify(array));
+
+      array = array.map(obj=>{
+        const kopie = { ...obj };
+        delete kopie.kassenprojektID;
+        delete kopie.desktopID;
+        return kopie;
+      })
+
+      const header = Object.keys(array[0]).join(";"); // Semikolon für DE-Excel
+      const rows = array.map(obj =>
+        Object.values(obj)
+          .map(v => `"${String(v).replace(/"/g, '""')}"`) // schützt Sonderzeichen
+          .join(";")
+      );
+      const csv = header + "\n" + rows.join("\n");
+      const bom = "\uFEFF";
+      const blob = new Blob([bom+csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =  name+".csv";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    },
+
+    async importWithSwal(typ) {
+      if(typ=='artikel'){
+          if(this.artikelItems != false && this.artikelItems != undefined && this.artikelItems.length != 0){
+            Swal.fire({
+              icon: 'error',
+              title: 'Import fehlgeschlagen',
+              text: 'Es existieren noch Artikel im Desktop'
+            });
+            return;
+          }
+      } else if(typ=='pfand'){
+          if(this.pfandItems != false && this.pfandItems != undefined && this.pfandItems.length != 0){
+            Swal.fire({
+              icon: 'error',
+              title: 'Import fehlgeschlagen',
+              text: 'Es existieren noch Pfand-Items im Desktop'
+            });
+            return;
+          }
+      }
+      try {
+        const { value: file } = await Swal.fire({
+          title: 'CSV-Datei auswählen',
+          text: 'Wähle eine semikolon-separierte CSV-Datei (UTF-8, ggf. mit BOM).',
+          input: 'file',
+          inputAttributes: {
+            accept: '.csv, text/csv, application/vnd.ms-excel',
+            'aria-label': 'Lade eine CSV-Datei hoch'
+          },
+          showCancelButton: true,
+          confirmButtonText: 'Importieren',
+          preConfirm: (f) => {
+            // preConfirm wird bereits mit dem File-Objekt aufgerufen
+            if (!f) {
+              Swal.showValidationMessage('Keine Datei ausgewählt');
+              return;
+            }
+            // weitere Validierung: Dateiendung
+            const name = f.name || '';
+            if (!name.toLowerCase().endsWith('.csv')) {
+              Swal.showValidationMessage('Bitte eine CSV-Datei auswählen (.csv)');
+              return;
+            }
+            return f; // File wird als value zurückgegeben
+          }
+        });
+
+        if (!file) {
+          // Abgebrochen
+          return;
+        }
+
+        Swal.fire({
+          title: 'Datei wird gelesen...',
+          didOpen: () => Swal.showLoading()
+        });
+
+        const text = await this.readFileAsText(file, 'utf-8');
+
+        // Parse CSV (Semikolon-Standard für DE-Excel)
+        const array = this.parseCsv(text, ';');
+
+        // Ergänze kassenprojektID und desktopID aus Props
+        const kassenprojektID = this.selectedKassenprojekt?.Id ?? null;
+        const desktopID = this.selectedDesktop?.Id ?? null;
+
+        const enriched = array.map(obj => ({
+          ...obj,
+          kassenprojektID,
+          desktopID
+        }));
+
+        // Ergebnis speichern
+        this.importedData = enriched;
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Import erfolgreich',
+          text: `Es wurden ${enriched.length} Zeilen importiert.`,
+          timer: 2500
+        });
+        console.log(this.importedData);
+
+        // Falls du das Array sofort weiterverarbeiten willst, kannst du es hier zurückgeben oder emitten:
+        // this.$emit('imported', enriched);
+        if(typ == 'artikel'){
+          if(this.artikelItems != false && this.artikelItems != undefined && this.artikelItems.length != 0){
+            Swal.fire({
+              icon: 'error',
+              title: 'Import fehlgeschlagen',
+              text: 'Es existieren noch Artikel im Desktop'
+            });
+            return;
+          }
+          this.artikelItems = this.importedData;
+          this.$emit('clearArtikelSichtbarkeit');
+          this.$emit('setArtikelItems', []);
+          this.artikelItems.forEach(obj=>{
+            this.$emit('addArtikel', obj)
+          })
+        } else if(typ == 'pfand'){
+          if(this.pfandItems != false && this.pfandItems != undefined && this.pfandItems.length != 0){
+            Swal.fire({
+              icon: 'error',
+              title: 'Import fehlgeschlagen',
+              text: 'Es existieren noch Pfand-Items im Desktop'
+            });
+            return;
+          }
+          this.pfandItems = this.importedData;
+          this.$emit('clearPfandSichtbarkeit');
+          this.$emit('setPfandItems', []);
+          this.pfandItems.forEach(obj=>{
+            this.$emit('addPfand', obj)
+          })
+        }
+        return enriched;
+
+      } catch (err) {
+        console.error('Import-Fehler', err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Import fehlgeschlagen',
+          text: err.message || String(err)
+        });
+        throw err;
+      }
+    },
+
+    readFileAsText(file, encoding = 'utf-8') {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('Fehler beim Lesen der Datei'));
+        reader.onload = () => resolve(reader.result);
+        reader.readAsText(file, encoding);
+      });
+    },
+
+    // -------- CSV Parsing (Semikolon, quoted fields, einfache Typ-Erkennung) --------
+    parseCsv(text, sep = ';') {
+      if (typeof text !== 'string') throw new Error('parseCsv erwartet Text');
+
+      // BOM entfernen falls vorhanden
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
+      // Zeilen normalisieren (CRLF/CR -> LF)
+      text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+      // Trenne in Zeilen — wir ignorieren komplett leere Zeilen
+      const rawLines = text.split('\n');
+
+      // BUT: Wenn Felder Zeilenumbrüche enthalten (Innerhalb quotes), brauchen wir robusteren Ansatz.
+      // Diese Implementierung fügt Zeilen zusammen, bis ein vollständiges record (balanced quotes) vorliegt.
+      const lines = [];
+      let buffer = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < rawLines.length; i++) {
+        const line = rawLines[i];
+        // Falls buffer leer, initial setzen; ansonsten anfügen
+        buffer += (buffer === '' ? '' : '\n') + line;
+
+        // count quotes that are not escaped ("" counts as two quotes but escapes)
+        // einfache Heuristik: Count of unescaped quotes parity
+        let count = 0;
+        for (let j = 0; j < buffer.length; j++) {
+          if (buffer[j] === '"') {
+            // if next char is also quote, skip both (escaped)
+            if (buffer[j + 1] === '"') {
+              j++; // skip escaped quote
+            } else {
+              count++;
+            }
+          }
+        }
+        // wenn count (Anzahl nicht-escaped quotes) gerade -> balanced
+        if (count % 2 === 0) {
+          lines.push(buffer);
+          buffer = '';
+        } else {
+          // noch unvollständig — lese nächste physische Zeile dazu
+          continue;
+        }
+      }
+      if (buffer.trim() !== '') {
+        // verbleibende Zeile hinzufügen (falls vorhanden)
+        lines.push(buffer);
+      }
+
+      // Entferne komplett-leere Zeilen
+      const filtered = lines.filter(l => l.trim() !== '');
+      if (filtered.length === 0) return [];
+
+      // header
+      const header = this.parseCsvLine(filtered[0], sep).map(h => h.trim());
+
+      const rows = [];
+      for (let i = 1; i < filtered.length; i++) {
+        const fields = this.parseCsvLine(filtered[i], sep);
+        const obj = {};
+        for (let j = 0; j < header.length; j++) {
+          const key = header[j] || `col${j}`;
+          let val = fields[j] === undefined ? '' : fields[j];
+          val = val.trim();
+
+          // einfache Typumwandlung: integer / float erkennen
+          if (/^-?\d+$/.test(val)) {
+            val = parseInt(val, 10);
+          } else if (/^-?\d+\.\d+$/.test(val)) {
+            val = parseFloat(val);
+          }
+
+          obj[key] = val;
+        }
+        rows.push(obj);
+      }
+      return rows;
+    },
+
+    parseCsvLine(line, sep = ';') {
+      const result = [];
+      let cur = '';
+      let inQuotes = false;
+      let i = 0;
+
+      while (i < line.length) {
+        const ch = line[i];
+
+        if (inQuotes) {
+          if (ch === '"') {
+            // Doppeltes Anführungszeichen -> ein " in Feld
+            if (line[i + 1] === '"') {
+              cur += '"';
+              i += 2;
+              continue;
+            } else {
+              // Ende des quoted field
+              inQuotes = false;
+              i++;
+              continue;
+            }
+          } else {
+            cur += ch;
+            i++;
+            continue;
+          }
+        } else {
+          if (ch === '"') {
+            inQuotes = true;
+            i++;
+            continue;
+          }
+          if (ch === sep) {
+            result.push(cur);
+            cur = '';
+            i++;
+            continue;
+          }
+          cur += ch;
+          i++;
+        }
+      }
+
+      result.push(cur);
+      return result;
+    },
+    belegeLoeschen(){
+      this.$emit('deleteBelege');
     }
   },
   computed: {
     ...mapState('item', ['height', 'titleSize', 'priceSize', 'width']),
+    ...mapState('witem', ['anzahlSize', 'titleSize', 'priceSize', 'pfandSize']),
 
     cssVars() {
       return {
@@ -323,6 +687,11 @@ export default {
     this.itemPriceSize = this.$store.state.item.priceSize;
     this.itemHeight = this.$store.state.item.height;
     this.itemWidth = this.$store.state.item.width;
+
+    this.witemAnzahlSize = this.$store.state.witem.anzahlSize;
+    this.witemTitleSize = this.$store.state.witem.titleSize;
+    this.witemPriceSize = this.$store.state.witem.priceSize;
+    this.witemPfandSize = this.$store.state.witem.pfandSize;
   },
   watch: {
     artikel(newVal) {
@@ -356,7 +725,27 @@ export default {
       if(newVal){
         this.$store.commit('item/SET_WIDTH', newVal);
       }
-    }
+    },
+    witemAnzahlSize(newVal){
+      if(newVal){
+        this.$store.commit('witem/SET_ANZAHL_SIZE', newVal);
+      }
+    },
+    witemTitleSize(newVal){
+      if(newVal){
+        this.$store.commit('witem/SET_TITLE_SIZE', newVal);
+      }
+    },
+    witemPriceSize(newVal){
+      if(newVal){
+        this.$store.commit('witem/SET_PRICE_SIZE', newVal);
+      }
+    },
+    witemPfandSize(newVal){
+      if(newVal){
+        this.$store.commit('witem/SET_PFAND_SIZE', newVal);
+      }
+    },
   },
 
 };
@@ -577,7 +966,7 @@ h3{
   justify-content: space-between;
 }
 
-.plusButton{
+.plusButton, .exportButton, .importButton{
   padding: 0;
   height: 2rem;
   width: 2rem;
@@ -587,7 +976,7 @@ h3{
   color: var(--ink);
 }
 
-.plusButton:hover{
+.plusButton:hover, .exportButton:hover, .importButton:hover{
   background-color: var(--hover);
 }
 
@@ -673,6 +1062,7 @@ h3{
     border-radius: 20px;
     border-color: var(--border);
     margin-top: 16px;
+    cursor: pointer;
   }
 }
 

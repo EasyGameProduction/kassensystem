@@ -2,7 +2,7 @@
   <div :style="cssVars">
     <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword"/>
     <DesktopAuswahl v-if="this.desktopAuswahl" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
-    <KassensystemMain v-if="this.kassensystemMain" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @switchDesktop="this.switchDesktop"/>
+    <KassensystemMain v-if="this.kassensystemMain" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @selectDesktop="this.selectDesktop"/>
     <button class="backButton fa" @click="this.goBack()">&#xf015</button>
   </div>
 </template>
