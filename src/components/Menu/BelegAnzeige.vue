@@ -216,8 +216,13 @@ export default {
     }
   },
   created() {
-    this.belege = JSON.parse(this.$store.state.kasse.belegItems);
-    this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    try{
+        this.belege = JSON.parse(this.$store.state.kasse.belegItems);
+        this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        this.belege = this.belege.sort((a, b) => b.time - a.time);
+    } catch(err){
+        this.belege = [];
+    }
   }
 };
 </script>

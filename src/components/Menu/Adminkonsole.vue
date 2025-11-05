@@ -152,8 +152,12 @@ export default {
     this.bekommenerPfand = [];
     this.fehlenderPfand = [];
     this.createVerkaufteArtikel();
-    this.belegItems = JSON.parse(this.$store.state.kasse.belegItems);
-    this.belegItems.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    try{
+        this.belegItems = JSON.parse(this.$store.state.kasse.belegItems);
+        this.belegItems.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    } catch(err){
+        this.belegItems = [];
+    }
   },
   watch: {
     artikel(){

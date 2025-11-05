@@ -94,7 +94,7 @@
         left: 50%;
         width: 70vh;
         height: 50vh;
-        z-index: 5;
+        z-index: 90;
         display: grid;
         transform: translate(-50%, -65%);
         grid-template-columns: repeat(4, 1fr);
@@ -145,7 +145,7 @@
     #rechnerBackground{
         width: 100vw;
         height: 100vh;
-        z-index: 3;
+        z-index: 89;
         position: fixed;
         left: 0;
         top: 0;

@@ -57,7 +57,7 @@
     <main class="rightContainer" role="main">
       <div id="daten" v-if="daten">
         <h1>Daten</h1>
-        <div class="datenHeader"><h3>Artikel:</h3><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📤</button><button class="importButton" @click="this.importWithSwal('artikel')">📲</button></div></div>
+        <div class="datenHeader"><h3>Artikel:</h3><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📤</button><button class="importButton" @click="this.importWithSwal('artikel')">📥</button></div></div>
 
         <!-- draggable wrapper: v-model linked to items -->
         <draggable
@@ -106,7 +106,7 @@
           </template>
         </draggable>
         <br/>
-        <div class="datenHeader"><h3>Pfand:</h3><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📲</button></div></div>
+        <div class="datenHeader"><h3>Pfand:</h3><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📥</button></div></div>
         <draggable
           v-model="pfandItems"
           item-key="id"
