@@ -1,6 +1,6 @@
 <template>
-    <div>
-      <highcharts :options="chartOptions"></highcharts>
+    <div ref="wrapper" :style="cssVars">
+      <highcharts ref="hc" :options="chartOptions"></highcharts>
     </div>
 </template>
 
@@ -23,13 +23,20 @@ export default {
   props: {
     kassenProjekt: {},
     dataAPI: [],
-    gesamt: String
+    gesamt: String,
+    darkMode: Boolean
   },
   data() {
     return {
       total: 0,
       columnData: [],
-      chartOptions: null
+      chartOptions: {
+        chart: { type: "column", backgroundColor: "transparent" },
+        title: { text: "" },
+        xAxis: { categories: [] },
+        yAxis: { title: { text: "" } },
+        series: [],
+      },
     };
   },
   watch: {
@@ -40,29 +47,86 @@ export default {
       immediate: true
     }
   },
+  computed: {
+    cssVars() {
+     if(!this.$props.darkMode){
+        return {
+          '--chart-bg': '#ffffff',
+          '--chart-ink': '#222',
+          '--chart-grid-line': '#e1e1e1',
+        };
+      } else{
+        return {
+          '--chart-bg': '#161616',
+          '--chart-ink': '#ffffff',
+          '--chart-grid-line': '#ffffff'
+        };
+      }
+    },
+  },
   methods: {
     prepareChart(){
-      this.chartOptions = this.getColumnChartData();
+      // ensure DOM updated so getComputedStyle(this.$refs.wrapper) works
+      this.$nextTick(() => {
+        const opts = this.getColumnChartData();
+        console.log(opts.yAxis.gridLineColor);
+        // set chartOptions so highcharts-vue mounts/updates safely
+        this.chartOptions = opts;
+
+        // optional: if chart instance exists, update only background (guarded)
+        this.$nextTick(() => {
+          if (this.$refs.hc && this.$refs.hc.chart) {
+            this.$refs.hc.chart.update({ chart: { backgroundColor: opts.chart.backgroundColor } }, true, true);
+          }
+        });
+      });
     },
     getColumnChartData() {
-        console.log(this.$props.dataAPI);
       this.processData();
+      
+      const el = this.$refs.wrapper || document.documentElement;
+      const styles = getComputedStyle(el);
+      let bg = styles.getPropertyValue("--chart-bg").trim();
+      let ink = styles.getPropertyValue("--chart-ink").trim();
+      let gridLine = styles.getPropertyValue("--chart-grid-line").trim();
+      if (!bg) bg = getComputedStyle(document.documentElement).getPropertyValue("--chart-bg").trim() || "transparent";
+
       return {
         chart: {
-          type: "column"
+          type: "column", 
+          backgroundColor: bg
         },
         title: {
-          text: "Fehlender Pfand ("+this.$props.gesamt+" €)"
+          text: "Fehlender Pfand ("+this.$props.gesamt+" €)",
+          style: {
+            color: ink
+          }
         },
         xAxis: {
           categories: this.columnData.map(item => item.name),
-          title: {
-            text: "Pfand"
+          labels: {
+            style: {
+              color: ink
+            },
           }
         },
         yAxis: {
           title: {
-            text: "Anzahl fehlend"
+            text: "Anzahl fehlend",
+            style: {
+              color: ink
+            }
+          },
+          labels: {
+            style: {
+              color: ink
+            },
+          },
+          gridLineColor: gridLine
+        },
+        legend: {
+          itemStyle: {
+            color: ink,
           }
         },
         tooltip: {
@@ -75,7 +139,10 @@ export default {
           {
             name: "Fehlende Pfand",
             data: this.columnData,
-            colorByPoint: true
+            colorByPoint: true,
+            style: {
+              color: ink
+            },
           }
         ]
       };

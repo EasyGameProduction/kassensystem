@@ -1,25 +1,39 @@
 <template>
-    <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()"/>
-    <br>
-    <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()"/>
+    <div v-if="this.$props.darkMode">
+        <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
+        <br>
+        <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
+        <br>
+        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg"/>
+    </div>
+    <div v-if="!this.$props.darkMode">
+        <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
+        <br>
+        <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
+        <br>
+        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg"/>
+    </div>
 </template>
 
 <script>
 import ColumnChart from './ColumnChart.vue';
 import { mapState } from 'vuex';
 import ColumnChartPfand from './ColumnChartPfand.vue';
+import SplineChart from './SplineChart.vue';
 
 export default {
   name: "Adminkonsole",
   components: {
     ColumnChart,
-    ColumnChartPfand
+    ColumnChartPfand,
+    SplineChart
   },
   props: {
     artikel: Array,
     pfand: Array,
     selectedKassenprojekt: Object,
     selectedDesktop: Object,
+    darkMode: Boolean,
   },
   data() {
     return {
@@ -29,10 +43,16 @@ export default {
         bekommenerPfand: [],
         fehlenderGesamt: 0,
         fehlenderPfand: [],
+        belegItems: []
     };
   },
   computed: {
     ...mapState('kasse', ['belegItems']),
+    cssVars() {
+      return {
+        
+      };
+    },
   },
   methods: {
     createVerkaufteArtikel(){
@@ -120,6 +140,9 @@ export default {
         console.log(fehlenderPfand);
         return fehlenderPfand;
     },
+    openBeleg(beleg){
+        this.$emit('openBeleg', beleg);
+    }
   },
   created(){
     this.gesamt = 0;
@@ -129,6 +152,8 @@ export default {
     this.bekommenerPfand = [];
     this.fehlenderPfand = [];
     this.createVerkaufteArtikel();
+    this.belegItems = JSON.parse(this.$store.state.kasse.belegItems);
+    this.belegItems.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
   },
   watch: {
     artikel(){

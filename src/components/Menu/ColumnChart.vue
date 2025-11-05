@@ -1,6 +1,6 @@
 <template>
-    <div>
-      <highcharts :options="chartOptions"></highcharts>
+    <div ref="wrapper" :style="cssVars">
+      <highcharts ref="hc" :options="chartOptions"></highcharts>
     </div>
 </template>
 
@@ -23,13 +23,20 @@ export default {
   props: {
     kassenProjekt: {},
     dataAPI: [],
-    gesamt: String
+    gesamt: String,
+    darkMode: Boolean
   },
   data() {
     return {
       total: 0,
       columnData: [],
-      chartOptions: null
+      chartOptions: {
+        chart: { type: "column", backgroundColor: "transparent" },
+        title: { text: "" },
+        xAxis: { categories: [] },
+        yAxis: { title: { text: "" } },
+        series: [],
+      },
     };
   },
   watch: {
@@ -40,41 +47,106 @@ export default {
       immediate: true
     }
   },
+  computed: {
+    cssVars() {
+     if(!this.$props.darkMode){
+        return {
+          '--chart-bg': '#ffffff',
+          '--chart-ink': '#222',
+          '--chart-grid-line': '#e1e1e1',
+        };
+      } else{
+        return {
+          '--chart-bg': '#161616',
+          '--chart-ink': '#ffffff',
+          '--chart-grid-line': '#ffffff'
+        };
+      }
+    },
+  },
   methods: {
-    prepareChart(){
-      this.chartOptions = this.getColumnChartData();
+    prepareChart() {
+      // ensure DOM updated so getComputedStyle(this.$refs.wrapper) works
+      this.$nextTick(() => {
+        const opts = this.getColumnChartData();
+        console.log(opts.yAxis.gridLineColor);
+        // set chartOptions so highcharts-vue mounts/updates safely
+        this.chartOptions = opts;
+
+        // optional: if chart instance exists, update only background (guarded)
+        this.$nextTick(() => {
+          if (this.$refs.hc && this.$refs.hc.chart) {
+            this.$refs.hc.chart.update({ chart: { backgroundColor: opts.chart.backgroundColor } }, true, true);
+          }
+        });
+      });
+    },
+    getTotal(){
+      try{
+        return this.total.toFixed(2).toString();
+      } catch(err){
+        return "0.00";
+      }
     },
     getColumnChartData() {
       this.processData();
+      
+      const el = this.$refs.wrapper || document.documentElement;
+      const styles = getComputedStyle(el);
+      let bg = styles.getPropertyValue("--chart-bg").trim();
+      let ink = styles.getPropertyValue("--chart-ink").trim();
+      let gridLine = styles.getPropertyValue("--chart-grid-line").trim();
+      if (!bg) bg = getComputedStyle(document.documentElement).getPropertyValue("--chart-bg").trim() || "transparent";
+
       return {
-        chart: {
-          type: "column"
-        },
-        title: {
-          text: "Verkaufte Artikel ("+this.$props.gesamt+" €)"
-        },
+        chart: { type: "column", backgroundColor: bg },
+        title: { 
+          text: "Verkauft ("+this.getTotal() + " €)",
+          style: {
+            color: ink
+          }
+         },
         xAxis: {
-          categories: this.columnData.map(item => item.name),
-          title: {
-            text: "Artikel"
+          categories: this.columnData.map(d => d.name),
+          labels: {
+            style: {
+              color: ink
+            },
           }
         },
-        yAxis: {
-          title: {
-            text: "Anzahl verkauft"
-          }
+        yAxis: { 
+          title: { 
+            text: "Anzahl",
+            style: {
+              color: ink
+            }
+          },
+          labels: {
+            style: {
+              color: ink
+            },
+          },
+          gridLineColor: gridLine
         },
         tooltip: {
           useHTML: true,
           formatter: function () {
-            return `<b>${this.point.name}</b><br>Anzahl: ${this.y} <br>Einnahmen: ${this.point.money}€`;
+            return `<b>${this.point.name}</b><br>Anzahl: ${this.y} <br>Gewinn: ${this.point.money}€`;
+          }
+        },
+        legend: {
+          itemStyle: {
+            color: ink,
           }
         },
         series: [
-          {
-            name: "Verkaufte Menge",
-            data: this.columnData,
-            colorByPoint: true
+          { 
+            name: "Verkauft", 
+            style: {
+              color: ink
+            },
+            data: this.columnData, 
+            colorByPoint: true 
           }
         ]
       };
@@ -87,24 +159,29 @@ export default {
       if (!this.dataAPI || this.dataAPI.length === 0) return;
 
       this.dataAPI.forEach(element => {
-        const totalMoney = +(element.preis) * +(element.anzahlVerkauft);
-        this.total += totalMoney;
 
-        // Column Chart Data
-        this.columnData.push({
-          name: element.bezeichnung,
-          y: +(element.anzahlVerkauft),
-          money: this.formatNumber(totalMoney)
-        });
+        const preis = Number(String(element.preis).replace(",", "."));
+        const anzahl = Number(element.anzahlVerkauft);
+
+          if(anzahl > 0){
+
+          const totalMoney = preis * anzahl;
+
+          this.total += totalMoney;
+
+          this.columnData.push({
+            name: element.bezeichnung,
+            y: anzahl,
+            money: totalMoney.toFixed(2)
+          });
+        }
       });
-
-      this.total = this.formatNumber(this.total);
     },
 
     formatNumber(amount) {
       return amount.toFixed(2);
     }
-  }
+  },
 };
 </script>
 

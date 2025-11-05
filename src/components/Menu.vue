@@ -206,7 +206,7 @@
       </div>
       <div id="admin" v-if="admin">
         <h1>Adminkonsole</h1>
-        <Adminkonsole v-if="active" :artikel="this.artikelItems" :pfand="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop"/>
+        <Adminkonsole v-if="active" :artikel="this.artikelItems" :pfand="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars" :darkMode="this.$props.darkMode" @openBeleg="this.openBeleg"/>
       </div>
       <div id="belege" v-if="belege">
         <h1>Belege</h1>
@@ -214,7 +214,7 @@
           <h2>{{ selectedKassenprojekt.name }} - {{ selectedDesktop.name }}:</h2>
           <button @click="this.belegeLoeschen()">Löschen</button>
         </div>
-        <BelegAnzeige :artikelItems="this.artikelItems" :pfandItems="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars"/>
+        <BelegAnzeige :artikelItems="this.artikelItems" :pfandItems="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars" :selectedBeleg="this.selectedBeleg" @clearSelectedBeleg="this.selectedBeleg = {}"/>
       </div>
       <div id="weitere" v-if="weitere">
         <h1>Erweiterte Einstellungen</h1>
@@ -292,10 +292,17 @@ export default {
       witemPriceSize: 0,
       witemPfandSize: 0,
 
-      importedData: null
+      importedData: null,
+
+      selectedBeleg: {}
     };
   },
   methods: {
+    openBeleg(beleg){
+      this.selectedBeleg = beleg;
+      this.admin = false;
+      this.belege = true;
+    },
     toggleCollapsed() {
       this.collapsed = !this.collapsed;
     },

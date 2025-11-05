@@ -1,5 +1,5 @@
 <template>
-    <div class="belegItem" v-for="beleg in this.belege" :id="beleg.time" :style="cssVars">
+    <div class="belegItem" v-for="beleg in this.belege" :key="beleg.time" :style="cssVars" :id="'time'+beleg.time">
         <div class="headerLine" @click="beleg.open = !beleg.open">
             <h2 class="belegDatum">{{ this.convertDate(beleg.time) }} - {{ this.convertTime(beleg.time) }}</h2>
             <h3 class="helferFrei" v-if="beleg.helferFrei == true">Helfer frei</h3>
@@ -8,7 +8,7 @@
                 <button @click.stop="this.deleteBeleg(beleg)" class="btn btn-danger trash">🗑</button>
             </div>
         </div>
-        <div class="bottom" v-if="beleg.open">
+        <div class="bottom" v-if="beleg.open || this.checkBeleg(beleg)">
             <h3 v-if="beleg.artikelAuswahl.length > 0">Artikel:</h3>
             <div v-if="beleg.artikelAuswahl.length > 0" class="bezeichnungen">
                 <div class="bezeichnung">
@@ -72,12 +72,12 @@
                 </div>
             </div>
             <hr>
-            <div v-if="beleg.pfandAuswahl.length > 0" class="pfandAuswahl" v-for="pfand in beleg.pfandAuswahl" :id="pfand.Id">
+            <div v-if="beleg.pfandAuswahl.length" class="pfandAuswahl" v-for="pfand in beleg.pfandAuswahl" :id="pfand.Id">
                 <div class="bezeichnung">
                     {{ this.getPfand(pfand).bezeichnung }}
                 </div>
                 <div class="preis">
-                    {{ this.convertPreis(this.getPfand(pfand).preis) }} €
+                    - {{ this.convertPreis(this.getPfand(pfand).preis) }} €
                 </div>
                 <div class="anzahl">
                     {{ pfand.anzahl }}
@@ -102,7 +102,8 @@ export default {
     artikelItems: Array,
     pfandItems: Array,
     selectedKassenprojekt: Object,
-    selectedDesktop: Object
+    selectedDesktop: Object,
+    selectedBeleg: Object
   },
   data() {
     return {
@@ -126,6 +127,36 @@ export default {
     },
   },
   methods: {
+    checkBeleg(beleg){
+        if(beleg.time == this.$props.selectedBeleg.time){
+            this.$emit('clearSelectedBeleg');
+            beleg.open = true;
+
+
+            this.$nextTick(() => {
+                // sichere Id-Zusammensetzung (falls beleg.time Sonderzeichen enthalten könnte)
+                const safeId = 'time' + String(beleg.time).replace(/[^a-zA-Z0-9\-_:.]/g, '');
+                const div = document.getElementById(safeId);
+                if (div && typeof div.scrollIntoView === 'function') {
+                    try {
+                        div.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center"
+                        });
+                    } catch (err) {
+                        // manche Browser werfen (oder geben ein Promise zurück) – fallback:
+                        div.scrollIntoView();
+                    }
+                } else {
+                    // Fallback-Log / optional: console.warn
+                    console.warn('Element zum Scrollen nicht gefunden:', safeId, div);
+                }
+            });
+            return true;
+        } else{
+            return false;
+        }
+    },
     convertDate(timestamp){
         let datum = new Date(timestamp);
         datum = datum.toLocaleDateString('de-DE', {

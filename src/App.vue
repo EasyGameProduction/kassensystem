@@ -82,6 +82,7 @@ export default {
           '--hover': '#eeeeee',
           '--menu-button': '#f1f3f5',
           '--menu-left': '#ffffff',
+          '--grid-line': '#e1e1e1',
         };
       } else{
         return {
@@ -105,7 +106,8 @@ export default {
           '--shadow': '0 1px 2px rgba(0,0,0,.06), 0 6px 24px rgba(0,0,0,.08)',
           '--hover': '#2f2f2f',
           '--menu-button': '#303030',
-          '--menu-left': '#161616'
+          '--menu-left': '#161616',
+          '--grid-line': '#ffffff'
         };
       }
     }
