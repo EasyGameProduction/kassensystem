@@ -2,7 +2,7 @@
   <div class="desktopAuswahl" :style="cssVars">
     <header class="topbar" id="topbar">
       <div class="left-actions">
-        <button class="menuButton" :class="menuActive ? 'menuButtonActive' : 'menuButtonDeactive'" @click="openMenu()">≡</button>
+        <!--<button class="menuButton" :class="menuActive ? 'menuButtonActive' : 'menuButtonDeactive'" @click="openMenu()">≡</button>-->
       </div>
       <div class="title">Desktop wählen</div>
       <div class="right-actions">

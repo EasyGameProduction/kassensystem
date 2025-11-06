@@ -47,10 +47,10 @@
           <span class="navLabel">Belege</span>
         </button>
 
-        <button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true; belege = false">
+        <!--<button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true; belege = false">
           <span class="navIcon">⚙️</span>
           <span class="navLabel">Erweiterte Einstellungen</span>
-        </button>
+        </button>-->
       </nav>
     </aside>
 
