@@ -776,6 +776,7 @@ export default {
       }
     },
     showLetzteBestellung(){
+      console.log("test");
       this.artikelAuswahl = this.letzteBestellung.artikelAuswahl;
       this.pfandAuswahl = this.letzteBestellung.pfandAuswahl;
       this.rechnungsbetrag = this.letzteBestellung.rechnungsbetrag;
@@ -788,6 +789,7 @@ export default {
             stornoBeleg = belege[belege.length - 1];
             break;
           }
+          index--;
         }
         if(index > 0){
           this.artikelAuswahl = stornoBeleg.artikelAuswahl;
@@ -808,6 +810,7 @@ export default {
             stornoBeleg = belege[belege.length - 1];
             break;
           }
+          index--;
         }
         if(index > 0){
           await Swal.fire({

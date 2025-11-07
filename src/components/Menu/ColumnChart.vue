@@ -158,7 +158,7 @@ export default {
       this.total = 0;
       if (!this.dataAPI || this.dataAPI.length === 0) return;
 
-      this.dataAPI.forEach(element => {
+      this.dataAPI.sort((a,b)=>Number(b.anzahlVerkauft) - Number(a.anzahlVerkauft)).forEach(element => {
 
         const preis = Number(String(element.preis).replace(",", "."));
         const anzahl = Number(element.anzahlVerkauft);

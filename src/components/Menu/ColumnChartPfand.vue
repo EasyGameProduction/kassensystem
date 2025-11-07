@@ -154,7 +154,7 @@ export default {
       this.total = 0;
       if (!this.dataAPI || this.dataAPI.length === 0) return;
 
-      this.dataAPI.forEach(element => {
+      this.dataAPI.sort((a,b)=>Number(b.anzahl) - Number(a.anzahl)).forEach(element => {
         const totalMoney = +(element.preis) * +(element.anzahl);
         this.total += totalMoney;
 
