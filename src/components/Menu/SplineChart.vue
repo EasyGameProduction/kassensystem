@@ -22,7 +22,8 @@ export default {
   },
   props: {
     belegItems: Array, // JSON-String mit Belegdaten
-    darkMode: Boolean
+    darkMode: Boolean,
+    selectedDesktop: Object
   },
   data() {
     return {
@@ -44,6 +45,12 @@ export default {
         this.prepareSplineChart();
       },
       immediate: true
+    },
+    selectedDesktop: {
+      handler() {
+        this.prepareSplineChart();
+      },
+      immediate: true
     }
   },
   computed: {
@@ -52,12 +59,14 @@ export default {
         return {
           '--chart-bg': '#ffffff',
           '--chart-ink': '#222',
+          '--chart-line': '#004eff',
           '--chart-grid-line': '#e1e1e1',
         };
       } else {
         return {
           '--chart-bg': '#161616',
           '--chart-ink': '#ffffff',
+          '--chart-line': '#004eff',
           '--chart-grid-line': '#ffffff'
         };
       }
@@ -91,6 +100,7 @@ export default {
       const styles = getComputedStyle(el);
       const bg = styles.getPropertyValue("--chart-bg").trim() || "transparent";
       const ink = styles.getPropertyValue("--chart-ink").trim();
+      const line = styles.getPropertyValue("--chart-line").trim();
       const gridLine = styles.getPropertyValue("--chart-grid-line").trim();
         const vm = this;
       return {
@@ -131,7 +141,7 @@ export default {
           {
             name: 'Umsatz',
             data: this.splineData,
-            color: ink,
+            color: line,
             point:{
                 events: {
                     click: function(){

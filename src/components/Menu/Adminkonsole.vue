@@ -1,17 +1,17 @@
 <template>
     <div v-if="this.$props.darkMode">
+        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg" :selectedDesktop="this.$props.selectedDesktop"/>
+        <br>
         <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
         <br>
-        <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
-        <br>
-        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg"/>
+        <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>  
     </div>
     <div v-if="!this.$props.darkMode">
+        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg" :selectedDesktop="this.$props.selectedDesktop"/>
+        <br>
         <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
         <br>
         <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
-        <br>
-        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg"/>
     </div>
 </template>
 
@@ -58,6 +58,7 @@ export default {
     createVerkaufteArtikel(){
         let belege = JSON.parse(this.$store.state.kasse.belegItems);
         this.verkaufteArtikel = JSON.parse(JSON.stringify(this.$props.artikel));
+
         this.verkaufterPfand = JSON.parse(JSON.stringify(this.$props.pfand));
         this.bekommenerPfand = JSON.parse(JSON.stringify(this.$props.pfand));
 
@@ -142,6 +143,14 @@ export default {
     },
     openBeleg(beleg){
         this.$emit('openBeleg', beleg);
+    },
+    setBelegItems(){
+        try{
+            this.belegItems = JSON.parse(this.$store.state.kasse.belegItems);
+            this.belegItems = this.belegItems.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        } catch(err){
+            this.belegItems = [];
+        }
     }
   },
   created(){
@@ -152,12 +161,7 @@ export default {
     this.bekommenerPfand = [];
     this.fehlenderPfand = [];
     this.createVerkaufteArtikel();
-    try{
-        this.belegItems = JSON.parse(this.$store.state.kasse.belegItems);
-        this.belegItems.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
-    } catch(err){
-        this.belegItems = [];
-    }
+    this.setBelegItems();
   },
   watch: {
     artikel(){
@@ -169,6 +173,7 @@ export default {
         this.gesamt = 0;
         this.fehlenderGesamt = 0;
         this.createVerkaufteArtikel();
+        this.setBelegItems();
     },
     pfand(){
         this.gesamt = 0;
@@ -179,9 +184,22 @@ export default {
         this.gesamt = 0;
         this.fehlenderGesamt = 0;
         this.createVerkaufteArtikel();
+        this.setBelegItems();
+    },
+    belegItems: {
+        handler(newVal, oldVal){
+            try{
+                let newBelege = JSON.parse(newVal);
+                newBelege = newBelege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+                if(newBelege != this.belege){
+                    this.setBelegItems();
+                }
+            } catch(err){
+
+            }
+        },
+        deep: true
     }
   },
-  computed:{
-  }
 };
 </script>

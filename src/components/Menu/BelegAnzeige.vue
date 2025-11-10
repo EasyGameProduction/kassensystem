@@ -28,30 +28,30 @@
                 <hr>
                 <div class="artikelAuswahlCont">
                     <div class="bezeichnung">
-                        {{ this.getArtikel(artikel).bezeichnung }}
+                        {{ this.getArtikelBezeichnung(artikel) }}
                     </div>
                     <div class="preis">
-                        {{ this.convertPreis(this.getArtikel(artikel).preis) }} €
+                        {{ this.convertPreis(this.getArtikelPreis(artikel)) }} €
                     </div>
                     <div class="anzahl">
                         {{ artikel.anzahl }}
                     </div>
                     <div class="preisGesamt">
-                        {{ this.convertPreis(artikel.anzahl * this.getArtikel(artikel).preis) }} €
+                        {{ this.convertPreis(artikel.anzahl * this.getArtikelPreis(artikel)) }} €
                     </div>
                 </div>
-                <div class="artikelAuswahlPfand">
+                <div class="artikelAuswahlPfand" v-if="artikel.pfandId != '' && artikel.pfandId != false && artikel.pfandId != undefined">
                     <div class="pfandBezeichnung">
-                        {{ this.getArtikelPfand(artikel).bezeichnung }}
+                        {{ this.getArtikelPfandBezeichnung(artikel) }}
                     </div>
                     <div class="pfandPreis">
-                        {{ this.convertPreis(this.getArtikelPfand(artikel).preis) }} €
+                        {{ this.convertPreis(this.getArtikelPfandPreis(artikel)) }} €
                     </div>
                     <div class="pfandAnzahl">
                         {{ artikel.anzahl }}
                     </div>
                     <div class="pfandPreisGesamt">
-                        {{ this.convertPreis(artikel.anzahl * this.getArtikelPfand(artikel).preis) }} €
+                        {{ this.convertPreis(artikel.anzahl * this.getArtikelPfandPreis(artikel)) }} €
                     </div>
                 </div>
             </div>
@@ -83,7 +83,7 @@
                     {{ pfand.anzahl }}
                 </div>
                 <div class="preisGesamt">
-                    - {{ this.convertPreis(pfand.anzahl * this.getPfand(pfand).preis) }} €
+                    - {{ this.convertPreis(pfand.anzahl * this.getPfand(pfand)) }} €
                 </div>
             </div>
             <hr v-if="beleg.pfandAuswahl.length > 0">
@@ -114,7 +114,11 @@ export default {
   watch: {
     belegItems(){
         this.belege = JSON.parse(this.$store.state.kasse.belegItems);
-        this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    },
+    selectedDesktop(){
+        this.belege = JSON.parse(this.$store.state.kasse.belegItems);
+        this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
     }
   },
   computed: {
@@ -205,21 +209,54 @@ export default {
     getArtikel(artikel){
         return this.artikelItems.find(obj=>obj.Id == artikel.Id);
     },
+    getArtikelBezeichnung(artikel){
+        try{ 
+            return this.getArtikel(artikel).bezeichnung;
+        } catch(err){
+            return '';
+        }
+    },
+    getArtikelPreis(artikel){
+        try{
+            return this.getArtikel(artikel).preis;
+        } catch(err){
+            return '';
+        }
+    },
     getArtikelPfand(artikel){
         return this.pfandItems.find(obj=>obj.Id == artikel.pfandId);
+    },
+    getArtikelPfandBezeichnung(artikel){
+        try{
+            return this.getArtikelPfand(artikel).bezeichnung
+        } catch(err){
+            return '';
+        }
+    },
+    getArtikelPfandPreis(artikel){
+        try{
+            return this.getArtikelPfand(artikel).preis
+        } catch(err){
+            return '';
+        }
     },
     getPfand(pfand){
         return this.pfandItems.find(obj=>obj.Id == pfand.Id);
     },
     convertPreis(preis){
+        try{
         return preis.toFixed(2).toString();
+        } catch(err){
+            return '';
+        }
     }
   },
   created() {
     try{
         this.belege = JSON.parse(this.$store.state.kasse.belegItems);
-        this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
         this.belege = this.belege.sort((a, b) => b.time - a.time);
+        console.log(this.belege)
     } catch(err){
         this.belege = [];
     }
