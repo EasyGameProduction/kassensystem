@@ -107,6 +107,7 @@ export default {
         chart: {
           type: 'spline',
           backgroundColor: bg,
+          borderRadius: '13px'
         },
         title: {
           text: 'Gesamtumsatz über Zeit (' + this.getRechnungsbetrag() + ' €)',

@@ -99,7 +99,7 @@ export default {
       if (!bg) bg = getComputedStyle(document.documentElement).getPropertyValue("--chart-bg").trim() || "transparent";
 
       return {
-        chart: { type: "column", backgroundColor: bg },
+        chart: { type: "column", backgroundColor: bg, borderRadius: '13px' },
         title: { 
           text: "Verkauft ("+this.getTotal() + " €)",
           style: {

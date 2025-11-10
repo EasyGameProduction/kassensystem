@@ -20,7 +20,8 @@ export default {
   props: {
     item: Object,
     editMode: Boolean,
-    darkMode: Boolean
+    darkMode: Boolean,
+    type: String
   },
   data() {
     return {
@@ -54,13 +55,21 @@ export default {
     },
   },
   computed: {
-    ...mapState('item', ['height', 'titleSize', 'priceSize']),
+    ...mapState('item', ['height', 'titleSize', 'priceSize', 'heightP', 'titleSizeP', 'priceSizeP']),
     cssVars() {
-      return {
-        '--height': `${this.height}px`,
-        '--titleSize': `${this.titleSize}px`,
-        '--priceSize': `${this.priceSize}px`,
-      };
+      if(this.$props.type == 'Artikel'){
+        return {
+          '--height': `${this.height}px`,
+          '--titleSize': `${this.titleSize}px`,
+          '--priceSize': `${this.priceSize}px`,
+        };
+      } else if(this.$props.type == 'Pfand'){
+        return {
+          '--height': `${this.heightP}px`,
+          '--titleSize': `${this.titleSizeP}px`,
+          '--priceSize': `${this.priceSizeP}px`,
+        };
+      }
     },
   },
 };

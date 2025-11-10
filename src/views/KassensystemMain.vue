@@ -36,10 +36,11 @@
 
     <!-- Arbeitsbereich -->
     <main class="workspace" id="workspace" ref="workspace">
+
       <!-- Linke Seite -->
       <section class="left" id="leftPane" ref="leftPane">
         <div class="artikelAuswahl" id="artikelAuswahl">
-          <Item class="artikelItem" v-for="artikel in this.artikelItems" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" @addItem="this.addArtikel" v-show="this.getItemVisible(artikel, 'artikel')" :darkMode="this.darkMode"/>
+          <Item class="artikelItem" :type="'Artikel'" v-for="artikel in this.artikelItems" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" @addItem="this.addArtikel" v-show="this.getItemVisible(artikel, 'artikel')" :darkMode="this.darkMode"/>
         </div>
 
         <!-- Horizontaler Griff -->
@@ -61,7 +62,7 @@
           ref="bottomBar"
           v-if="this.pfandItems != undefined && this.pfandItems.length > 0" 
         >
-          <Item class="pfandItem" v-for="pfand in this.pfandItems" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" @addItem="this.addPfand" v-show="this.getItemVisible(pfand, 'pfand')" :darkMode="this.darkMode"/>
+          <Item class="pfandItem" :type="'Pfand'" v-for="pfand in this.pfandItems" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" @addItem="this.addPfand" v-show="this.getItemVisible(pfand, 'pfand')" :darkMode="this.darkMode"/>
         </div>
       </section>
 
@@ -122,7 +123,7 @@
     </main>
   </div>
 
-  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" @clearArtikelSichtbarkeit="this.clearArtikelSichtbarkeit" @clearPfandSichtbarkeit="this.clearPfandSichtbarkeit" @deleteBelege="this.deleteBelege"/>
+  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" @clearArtikelSichtbarkeit="this.clearArtikelSichtbarkeit" @clearPfandSichtbarkeit="this.clearPfandSichtbarkeit" @deleteBelege="this.deleteBelege" @updateArtikel="this.updateArtikel"/>
   <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.desktops" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
   <Rechner v-if="this.rechnerActive" :active="this.rechnerActive" :rechnerBetrag="this.rechnungsbetrag" @closeRechner="this.rechnerActive = !this.rechnerActive"/>
 </template>
@@ -144,6 +145,7 @@ import DesktopSwitch from '@/components/DesktopSwitch.vue';
 import Swal from 'sweetalert2';
 import Rechner from '@/components/Rechner.vue';
 import { Desktop } from '@/backend_controller/desktop';
+import { Artikel } from '@/backend_controller/artikel';
 
 export default {
   name: 'KassensystemMain',
@@ -212,7 +214,7 @@ export default {
   },
   computed: {
     ...mapState('kasse', ['rightPanelWidth', 'bottomRowHeight', 'artikelItems', 'pfandItems', 'belegItems', 'desktopItems']),
-    ...mapState('item', ['width']),
+    ...mapState('item', ['width', 'widthP']),
 
     cssVars() {
       // Alle Variablen zentral binden; Farben etc. können ebenfalls via Theme aus Vuex kommen
@@ -223,6 +225,7 @@ export default {
           '--header-height': '54px',
 
           '--itemWidth': `${this.width}px`,
+          '--itemWidthP': `${this.widthP}px`,
           '--total-up': `${this.totalUp}px`   // neu
         };
       } else{
@@ -232,6 +235,7 @@ export default {
           '--header-height': '54px',
 
           '--itemWidth': `${this.width}px`,
+          '--itemWidthP': `${this.widthP}px`,
           '--total-up': `${this.totalUp}px`   // neu
         };
       }
@@ -459,7 +463,7 @@ export default {
     async switchDesktop(desktop){
       await this.$emit('selectDesktop', desktop);
       this.desktopSwitchActive = false;
-      this.getArtikelStore();
+      this.getArtikel();
       this.getPfandStore();
       this.removeWAll();
     },
@@ -469,25 +473,35 @@ export default {
       } catch(err){
         this.desktops = Desktop.getLocal(this.$props.selectedKassenprojekt.Id)
       }
-      /*let desktops = JSON.parse(this.$store.state.kasse.desktopItems);
-      desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id);
-      return desktops;*/
     },
-    getArtikel(){
-      try {
-        this.artikelItems = JSON.parse(this.$store.state.kasse.artikelItems);
-      } catch (e) {
-        console.error("Fehler beim Parsen von artikelItems:", e);
-      }
-      
-      if(this.artikelItems.length > 0){
-        this.artikelItems = this.artikelItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    async getArtikel(){
+      try{
+        this.artikelItems = await Artikel.get(this.$props.selectedKassenprojekt.Id, this.$props.selectedDesktop.Id)
+      } catch(err){
+        this.artikelItems = Artikel.getLocal(this.$props.selectedKassenprojekt.Id, this.$props.selectedDesktop.Id)
       }
     },
-    getArtikelStore(){
-      this.artikelItems = JSON.parse(this.$store.state.kasse.artikelItems);
-      if(this.artikelItems != false && this.artikelItems.length > 0){
-        this.artikelItems = this.artikelItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    async updateArtikel(artikel){
+      if(artikel != undefined){
+        try{
+          await Artikel.update(artikel)
+        } catch(err){
+          Artikel.updateLocal(artikel)
+        }
+      }
+    },
+    async deleteArtikelItem(artikel){
+      try{
+        await Artikel.delete(artikel)
+      } catch(err){
+        Artikel.deleteLocal(artikel)
+      }
+    },
+    async appendArtikel(artikel){
+      try{
+        await Artikel.add(artikel)
+      } catch(err){
+        Artikel.addLocal(artikel)
       }
     },
     getPfand(){
@@ -507,53 +521,17 @@ export default {
         this.pfandItems = this.pfandItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
       }
     },
-    setArticleItems(artikelItems){
-      this.artikelItems = artikelItems;
+    async setArticleItems(artikelItems){
 
-      console.log(artikelItems);
-      let itemsStore = JSON.parse(this.$store.state.kasse.artikelItems);
-      if(itemsStore){
-        this.artikelItems.forEach(item => {
-          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
-          if(index >= 0){
-            //itemsStore[index] = item;
-            itemsStore.splice(index, 1);
-            itemsStore.push(item)
-          } else{
-            itemsStore.push(item)
-          }
-        });
-
-        let delItems = new Array();
-
-        itemsStore.forEach(item=>{
-          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
-          if(index < 0){
-            delItems.push({index: index});
-          }
-        })
-
-        delItems.sort((a,b) =>b.index - a.index);
-        delItems.forEach(obj=>{
-          itemsStore.splice[obj.index, 1];
-        })
-
-        itemsStore = itemsStore.filter(storeItem => {
-          if (
-            storeItem.desktopID !== this.$props.selectedDesktop.Id ||
-            storeItem.kassenprojektID !== this.$props.selectedKassenprojekt.Id
-          ) {
-            return true;
-          }
-
-          return this.artikelItems.some(item =>
-            item.Id === storeItem.Id
-          );
-        });
-      } else{
-        itemsStore = this.artikelItems;
+      if (!artikelItems) {
+        this.artikelItems = [];
+        return;
       }
-      this.$store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(itemsStore));
+      await Artikel.deleteLocalFromDesktop(this.$props.selectedKassenprojekt.Id, this.$props.selectedDesktop.Id)
+      for (const item of artikelItems) {
+        this.appendArtikel(item);
+      }
+      this.artikelItems = artikelItems;
     },
     setPfandItems(pfandItems){
       this.pfandItems = pfandItems;
@@ -652,7 +630,8 @@ export default {
         this.artikelItemsSichtbarkeit = new Array();
       }
       this.artikelItemsSichtbarkeit.push(artikelSichtbarkeit);
-      this.setArticleItems(this.artikelItems);
+      //this.setArticleItems(this.artikelItems);
+      this.appendArtikel(artikel);
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
     },
     addPfandItem(pfandDefault){
@@ -700,6 +679,8 @@ export default {
       this.pfandItemsSichtbarkeit = JSON.parse(this.$store.state.kasse.pfandItemsSichtbarkeit)
     },
     deleteArtikel(item){
+      this.artikelAuswahl = this.artikelAuswahl.filter(obj=>obj.Id != item.Id);
+      
       let index = this.artikelItems.findIndex(obj=>obj.Id == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
       this.artikelItems.splice(index, 1);
 
@@ -707,7 +688,8 @@ export default {
       this.artikelItemsSichtbarkeit.splice(index, 1);
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
 
-      this.setArticleItems(this.artikelItems);
+      this.deleteArtikelItem(item);
+      //this.setArticleItems(this.artikelItems);
     },
     deletePfand(item){
       let index = this.pfandItems.findIndex(obj=>obj.Id == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
@@ -726,6 +708,8 @@ export default {
       } catch(err){
         
       }
+
+      this.pfandAuswahl = this.pfandAuswahl.filter(obj=>obj.Id != item.pfandId)
 
       this.pfandItems.splice(index, 1);
 
@@ -885,8 +869,12 @@ export default {
       }
     }
   },
-  created(){
-    this.getArtikel();
+  async created(){
+    if(window.screen.width < 700){
+      this.$store.commit('kasse/SET_RIGHT_PANEL_WIDTH', '0')
+    }
+
+    await this.getArtikel();
     this.getPfand();
     this.getArtikelSichtbarkeit();
     this.getPfandSichtbarkeit();
@@ -1135,7 +1123,7 @@ export default {
     border-top: 1px solid var(--border);
     padding: 12px 16px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(var(--itemWidthP), 1fr));
     gap: 6px;
     align-content: start;
     align-items: start;

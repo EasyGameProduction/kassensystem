@@ -83,7 +83,7 @@
                     {{ pfand.anzahl }}
                 </div>
                 <div class="preisGesamt">
-                    - {{ this.convertPreis(pfand.anzahl * this.getPfand(pfand)) }} €
+                    - {{ this.convertPreis(+pfand.anzahl * +this.getPfand(pfand).preis) }} €
                 </div>
             </div>
             <hr v-if="beleg.pfandAuswahl.length > 0">
@@ -274,6 +274,7 @@ export default {
     padding-left: 30px;
     padding-right: 5px;
     margin-bottom: 0.5rem;
+    box-shadow: var(--shadow);
 }
 
 .bottom{
@@ -323,6 +324,9 @@ export default {
 
     .bezeichnung, .pfandBezeichnung{
         text-align: left;
+        hyphens: auto;
+        overflow-wrap: break-word;
+        word-break: normal;
     }
 
     .preis, .pfandPreis{

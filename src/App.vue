@@ -30,23 +30,7 @@ export default {
       kassenprojektAuswahl: true,
       kassensystemMain: false,
 
-      kassenprojekte:[{
-        Id: 1,
-        name: 'Bierfest',
-        password: undefined,
-        image: 'https://sw-anzeiger.de/wp-content/uploads/2024/04/Poppenhausen-Bierfest-am-Glockenberg_1.jpg'
-      },
-      {
-        Id: 2,
-        name: 'Feuerwehrfest',
-        password: undefined,
-        image: 'https://daten.verwaltungsportal.de/dateien//mypage/8/3/5/3/2/7/BannerAllg-1_1.png?v=1725290175'
-      },{
-        Id: 3,
-        name: 'Weihnachtsbaumverkauf',
-        password: undefined,
-        image: 'https://img.sparknews.funkemedien.de/407811627/407811627_1733159868_v16_9_1200.jpeg'
-      }],
+      kassenprojekte:[],
       selectedKassenprojekt:{},
       selectedDesktop:{},
       selectedKasse:{},

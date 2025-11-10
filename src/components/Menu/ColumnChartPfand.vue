@@ -94,7 +94,8 @@ export default {
       return {
         chart: {
           type: "column", 
-          backgroundColor: bg
+          backgroundColor: bg,
+          borderRadius: '13px'
         },
         title: {
           text: "Fehlender Pfand ("+this.$props.gesamt+" €)",

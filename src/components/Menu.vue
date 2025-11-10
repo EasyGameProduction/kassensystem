@@ -6,7 +6,7 @@
       menuDeactive: !active,
       collapsed: collapsed
     }"
-    :style="cssVars"
+    :style="containerStyle"
     role="dialog"
     aria-hidden="false"
   >
@@ -55,9 +55,9 @@
     </aside>
 
     <main class="rightContainer" role="main">
-      <div id="daten" v-if="daten">
+      <div id="daten" class="contentContainer" v-if="daten">
         <h1>Daten</h1>
-        <div class="datenHeader"><h3>Artikel:</h3><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📤</button><button class="importButton" @click="this.importWithSwal('artikel')">📥</button></div></div>
+        <div class="datenHeader"><h2>Artikel:</h2><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📤</button><button class="importButton" @click="this.importWithSwal('artikel')">📥</button></div></div>
 
         <!-- draggable wrapper: v-model linked to items -->
         <draggable
@@ -82,6 +82,7 @@
                     placeholder="Bezeichnung"
                     type="text"
                     v-model="item.bezeichnung"
+                     @blur="this.updateArtikel(item)"
                 />
                 <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Sichtbar" v-if="artikelItemsSichtbarkeit.find(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf06e;</span>
                 <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Unsichtbar" v-if="!artikelItemsSichtbarkeit.find(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
@@ -96,17 +97,18 @@
                 min="0.00"
                 max="999.99"
                 v-model.number="item.preis"
+                 @blur="this.updateArtikel(item)"
               />
 
               <label :for="'pfand-'+item.id">Pfand: </label>
-              <select :id="'pfand-'+item.pfandId" v-model="item.pfandId">
+              <select :id="'pfand-'+item.pfandId" v-model="item.pfandId"  @blur="this.updateArtikel(item)">
                 <option v-for="pfand in this.pfandItems" :key="pfand.Id" :value="pfand.Id">{{ pfand.bezeichnung }}</option>
               </select>
             </div>
           </template>
         </draggable>
         <br/>
-        <div class="datenHeader"><h3>Pfand:</h3><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📥</button></div></div>
+        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📥</button></div></div>
         <draggable
           v-model="pfandItems"
           item-key="id"
@@ -148,35 +150,62 @@
           </template>
         </draggable>
       </div>
-      <div id="anzeige" v-if="anzeige">
+      <div id="anzeige" class="contentContainer" v-if="anzeige">
         <h1>Anzeige</h1>
         <div class="anzeigeTitle">
-          <h2>Artikel/Pfand:</h2>
+          <h2>Artikel:</h2>
           <button @click="this.itemReset()">Reset</button>
         </div>
         <div id="itemAnzeige">
           <div>
             <p>Schriftgröße Titel:</p>
             <span>{{ itemTitleSize }}</span>
-            <input type="range" min="12" max="60" class="slider" v-model="itemTitleSize" />
+            <input type="range" min="12" max="60" class="slider" v-model="itemTitleSize" @pointerdown="startInteraction" />
           </div>
           <div>
             <p>Schriftgröße Preis:</p>
             <span>{{ itemPriceSize }}</span>
-            <input type="range" min="12" max="50" class="slider" v-model="itemPriceSize" />
+            <input type="range" min="12" max="50" class="slider" v-model="itemPriceSize" @pointerdown="startInteraction" />
           </div>
           <div>
             <p>Höhe</p>
             <span>{{ itemHeight }}</span>
-            <input type="range" min="90" max="180" class="slider" v-model="itemHeight" />
+            <input type="range" min="90" max="180" class="slider" v-model="itemHeight" @pointerdown="startInteraction" />
           </div>
           <div>
             <p>Breite</p>
             <span>{{ itemWidth }}</span>
-            <input type="range" min="200" max="300" class="slider" v-model="itemWidth" />
+            <input type="range" min="200" max="300" class="slider" v-model="itemWidth" @pointerdown="startInteraction" />
           </div>
         </div>
-        <br><br>
+        <br><br><br>
+        <div class="anzeigeTitle">
+          <h2>Pfand:</h2>
+          <button @click="this.itemPReset()">Reset</button>
+        </div>
+        <div id="itemAnzeige">
+          <div>
+            <p>Schriftgröße Titel:</p>
+            <span>{{ itemTitleSizeP }}</span>
+            <input type="range" min="12" max="60" class="slider" v-model="itemTitleSizeP" @pointerdown="startInteraction" />
+          </div>
+          <div>
+            <p>Schriftgröße Preis:</p>
+            <span>{{ itemPriceSizeP }}</span>
+            <input type="range" min="12" max="50" class="slider" v-model="itemPriceSizeP" @pointerdown="startInteraction" />
+          </div>
+          <div>
+            <p>Höhe</p>
+            <span>{{ itemHeightP }}</span>
+            <input type="range" min="90" max="180" class="slider" v-model="itemHeightP" @pointerdown="startInteraction" />
+          </div>
+          <div>
+            <p>Breite</p>
+            <span>{{ itemWidthP }}</span>
+            <input type="range" min="200" max="300" class="slider" v-model="itemWidthP" @pointerdown="startInteraction" />
+          </div>
+        </div>
+        <br><br><br>
         <div class="anzeigeTitle">
           <h2>Warenkorbitem:</h2>
           <button @click="this.witemReset()">Reset</button>
@@ -185,30 +214,30 @@
           <div>
             <p>Schriftgröße Anzahl:</p>
             <span>{{ witemAnzahlSize }}</span>
-            <input type="range" min="12" max="30" class="slider" v-model="witemAnzahlSize" />
+            <input type="range" min="12" max="30" class="slider" v-model="witemAnzahlSize" @pointerdown="startInteraction" />
           </div>
           <div>
             <p>Schriftgröße Bezeichnung:</p>
             <span>{{ witemTitleSize }}</span>
-            <input type="range" min="12" max="30" class="slider" v-model="witemTitleSize" />
+            <input type="range" min="12" max="30" class="slider" v-model="witemTitleSize" @pointerdown="startInteraction" />
           </div>
           <div>
             <p>Schriftgröße Preis:</p>
             <span>{{ witemPriceSize }}</span>
-            <input type="range" min="12" max="24" class="slider" v-model="witemPriceSize" />
+            <input type="range" min="12" max="24" class="slider" v-model="witemPriceSize" @pointerdown="startInteraction" />
           </div>
           <div>
             <p>Schriftgröße Pfand</p>
             <span>{{ witemPfandSize }}</span>
-            <input type="range" min="10" max="20" step="0.5" class="slider" v-model="witemPfandSize" />
+            <input type="range" min="10" max="20" step="0.5" class="slider" v-model="witemPfandSize" @pointerdown="startInteraction" />
           </div>
         </div>
       </div>
-      <div id="admin" v-if="admin">
+      <div id="admin" class="contentContainer" v-if="admin">
         <h1>Adminkonsole</h1>
         <Adminkonsole v-if="active" :artikel="this.artikelItems" :pfand="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars" :darkMode="this.$props.darkMode" @openBeleg="this.openBeleg"/>
       </div>
-      <div id="belege" v-if="belege">
+      <div id="belege" class="contentContainer" v-if="belege">
         <h1>Belege</h1>
         <div class="anzeigeTitle">
           <h2>{{ selectedKassenprojekt.name }} - {{ selectedDesktop.name }}:</h2>
@@ -216,7 +245,7 @@
         </div>
         <BelegAnzeige :artikelItems="this.artikelItems" :pfandItems="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars" :selectedBeleg="this.selectedBeleg" @clearSelectedBeleg="this.selectedBeleg = {}"/>
       </div>
-      <div id="weitere" v-if="weitere">
+      <div id="weitere" class="contentContainer" v-if="weitere">
         <h1>Erweiterte Einstellungen</h1>
       </div>
     </main>
@@ -287,6 +316,11 @@ export default {
       itemHeight: 100,
       itemWidth: 220,
 
+      itemTitleSizeP: 18,
+      itemPriceSizeP: 15,
+      itemHeightP: 100,
+      itemWidthP: 220,
+
       witemAnzahlSize: 0,
       witemTitleSize: 0,
       witemPriceSize: 0,
@@ -294,7 +328,9 @@ export default {
 
       importedData: null,
 
-      selectedBeleg: {}
+      selectedBeleg: {},
+
+      interactingSlider: false,
     };
   },
   methods: {
@@ -324,6 +360,12 @@ export default {
     addPfand(){
       this.$emit('addPfand');
     },
+    updateArtikel(artikel){
+      this.$emit('updateArtikel', artikel)
+    },
+    updatePfand(){
+      this.$emit('updatePfand')
+    },
     deleteArtikel(item){
       this.$emit('deleteArtikel',item);
       console.log('Lösche');
@@ -335,7 +377,13 @@ export default {
       this.itemTitleSize = '18';
       this.itemPriceSize = '15';
       this.itemHeight = '100';
-      this.itemWidth= '220';
+      this.itemWidth = '220';
+    },
+    itemPReset(){
+      this.itemTitleSizeP = '18';
+      this.itemPriceSizeP = '15';
+      this.itemHeightP = '100';
+      this.itemWidthP = '220';
     },
     witemReset(){
       this.witemAnzahlSize = '18';
@@ -671,10 +719,16 @@ export default {
     },
     belegeLoeschen(){
       this.$emit('deleteBelege');
-    }
+    },
+    startInteraction() {
+      this.interactingSlider = true;
+    },
+    stopInteraction() {
+      this.interactingSlider = false;
+    },
   },
   computed: {
-    ...mapState('item', ['height', 'titleSize', 'priceSize', 'width']),
+    ...mapState('item', ['height', 'titleSize', 'priceSize', 'width', 'heightP', 'titleSizeP', 'priceSizeP', 'widthP']),
     ...mapState('witem', ['anzahlSize', 'titleSize', 'priceSize', 'pfandSize']),
 
     cssVars() {
@@ -684,6 +738,19 @@ export default {
         "--sidebarCollapsed": `${this.sidebarCollapsedWidth}px`,
       };
     },
+
+    containerStyle(){
+      const base = { ...this.cssVars };
+
+      if (this.interactingSlider) {
+        base.opacity = 0;
+      }
+
+      return base;
+    }
+  },
+  mounted(){
+    window.addEventListener('pointerup', this.stopInteraction);
   },
   created(){
     this.artikelItems = this.$props.artikel;
@@ -699,12 +766,16 @@ export default {
     this.witemTitleSize = this.$store.state.witem.titleSize;
     this.witemPriceSize = this.$store.state.witem.priceSize;
     this.witemPfandSize = this.$store.state.witem.pfandSize;
+
+    if(window.screen.width <= 700){
+      this.collapsed = true;
+    }
   },
   watch: {
     artikel(newVal) {
         if (newVal) {
             this.artikelItems = this.$props.artikel;
-            this.$emit('setArticleItems', this.artikelItems);
+            //this.$emit('setArticleItems', this.artikelItems);
         }
     },
     pfand(newVal) {
@@ -733,6 +804,26 @@ export default {
         this.$store.commit('item/SET_WIDTH', newVal);
       }
     },
+    itemTitleSizeP(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_TITLE_SIZEP', newVal);
+      }
+    },
+    itemPriceSizeP(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_PRICE_SIZEP', newVal);
+      }
+    },
+    itemHeightP(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_HEIGHTP', newVal);
+      }
+    },
+    itemWidthP(newVal){
+      if(newVal){
+        this.$store.commit('item/SET_WIDTHP', newVal);
+      }
+    },
     witemAnzahlSize(newVal){
       if(newVal){
         this.$store.commit('witem/SET_ANZAHL_SIZE', newVal);
@@ -754,7 +845,9 @@ export default {
       }
     },
   },
-
+  beforeDestroy(){
+    window.removeEventListener('pointerup', this.stopInteraction);
+  }
 };
 </script>
 
@@ -877,12 +970,17 @@ export default {
   background: transparent;
 }
 
+.contentContainer{
+  margin-bottom: 20px;
+}
+
 /* Grid of items (draggable) */
 .itemsWrapper {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
-  padding: 16px;
+  padding-top: 12px;
+  padding-bottom: 16px;
 }
 
 /* Each card */
@@ -897,6 +995,7 @@ export default {
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   user-select: none;
   position: relative;
+  box-shadow: var(--shadow);
 }
 
 /* small header with drag handle */
@@ -963,14 +1062,24 @@ select{
 }
 
 
-h3{
+h2{
     margin-top: 0;
-    margin-bottom: 0;
 }
 
 .datenHeader{
   display: flex;
   justify-content: space-between;
+
+  h2{
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+.anzeigeTitle{
+  button{
+    margin-top: 0 !important;
+  }
 }
 
 .plusButton, .exportButton, .importButton{
@@ -1053,6 +1162,11 @@ h3{
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  background-color: var(--items);
+  padding: 13px;
+  border-radius: 13px;
+  padding-top: 0px;
+  //box-shadow: var(--shadow);
 }
 
 .anzeigeTitle{
@@ -1077,23 +1191,20 @@ h3{
 
 /* Very small screens: hide sidebar */
 @media (max-width: 700px) {
-  .menuContainer {
-    grid-template-columns: 0 1fr;
+  .menuContainer{
+    gap: 10px;
   }
-  #itemAnzeige{
-    grid-template-columns: 0 1fr;
+
+  .datenHeader{
+    margin-bottom: 10px;
   }
-  .leftContainer {
-    display: none;
+
+  .itemsWrapper{
+    padding: 0px;
   }
-  .menuContainer.collapsed .leftContainer {
-    display: none;
-  }
-  .menuDeactive {
-    top: 100vh;
-  }
-  .menuActive {
-    top: 0;
+
+  .rightContainer{
+    padding: 0px;
   }
 }
 </style>
