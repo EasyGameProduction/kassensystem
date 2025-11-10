@@ -38,6 +38,7 @@
 import Swal from 'sweetalert2';
 import { mapState, mapMutations } from 'vuex';
 import AuswahlItem from '@/components/AuswahlItem.vue';
+import { Desktop } from '@/backend_controller/desktop';
 
 export default {
   name: 'desktopAuswahl',
@@ -141,23 +142,41 @@ export default {
         if(!desktops){
           desktops = new Array();
         }
-        desktops.push(newObj)
-        this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(desktops));
-        this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);
+        //desktops.push(newObj)
+        try{
+          await Desktop.add(newObj);
+        } catch(err){
+          Desktop.addLocal(newObj);
+        }
+        this.getDesktops();
+        //this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(desktops));
+        //this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);
       }
     },
-    delete(obj){
-      let desktops = JSON.parse(this.$store.state.kasse.desktopItems)
+    async delete(obj){
+      /*let desktops = JSON.parse(this.$store.state.kasse.desktopItems)
       desktops = desktops.filter(p => ( p.Id != obj.Id || p.kassenprojektID != this.$props.kassenprojekt.Id));
       this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(desktops));
-      this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);
+      this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);*/
+      try{
+        await Desktop.delete(obj)
+      } catch(err){
+        Desktop.deleteLocal(obj)
+      }
+      this.getDesktops();
     },
-    changeName(obj){
-      let desktops = JSON.parse(this.$store.state.kasse.desktopItems)
+    async changeName(obj){
+      /*let desktops = JSON.parse(this.$store.state.kasse.desktopItems)
       let index = desktops.findIndex(o=>o.Id == obj.Id && o.kassenprojektID == this.$props.kassenprojekt.Id);
       desktops[index].name = obj.name;
       this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(desktops));
-      this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);
+      this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);*/
+      try{
+        await Desktop.update(obj)
+      } catch(err){
+        Desktop.updateLocal(obj)
+      }
+      this.getDesktops();
     },
     async changePassword(item){
         var res;
@@ -179,7 +198,7 @@ export default {
 
         if(res.isConfirmed){
             if(item.password == res.value || ( item.password == undefined || item.password == '' )){
-                Swal.fire({
+                let update = Swal.fire({
                     title: "Passwort ändern",
                     input: "text",
                     showDenyButton: true,
@@ -191,27 +210,40 @@ export default {
                         let desktops = JSON.parse(this.$store.state.kasse.desktopItems)
                         let index = desktops.findIndex(o=>o.Id == item.Id && o.kassenprojektID == this.$props.kassenprojekt.Id);
                         desktops[index].password = item.password;
-                        this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(desktops));
-                        this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);
+                        /*this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(desktops));
+                        this.desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);*/
+                        return true;
                     }
-                })
+                });
+                if(update){
+                    try{
+                      await Desktop.update(desktops[index]);
+                    } catch(err){
+                      Desktop.updateLocal(desktops[index]);
+                    }
+                }
             }
         }
         this.activeMoreId = false;
+    },
+    async getDesktops(){
+      try{
+        this.desktops = await Desktop.get(this.$props.kassenprojekt.Id)
+      } catch(err){
+        this.desktops = Desktop.getLocal(this.$props.kassenprojekt.Id)
+      }
     }
   },
-  created(){
+  async created(){
+    this.getDesktops();
     /*try{
       this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(this.desktops));
     } catch(err){
 
     }*/
-    try{
-      this.desktops = JSON.parse(`${this.desktopItems}`);
-      this.desktops = this.desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);
-    } catch(err){
-      this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(this.desktops));
-    }
+    /*this.desktops = JSON.parse(`${this.desktopItems}`);
+    this.desktops = this.desktops.filter(obj => obj.kassenprojektID == this.$props.kassenprojekt.Id);*/
+    //this.$store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(this.desktops));
   }
 };
 </script>

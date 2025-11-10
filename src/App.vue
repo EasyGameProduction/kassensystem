@@ -13,6 +13,7 @@ import KassenprojektAuswahl from './views/KassenprojektAuswahl.vue';
 import DesktopAuswahl from './views/DesktopAuswahl.vue';
 import KassensystemMain from './views/KassensystemMain.vue';
 import Swal from 'sweetalert2';
+import { Kassenprojekt } from './backend_controller/kassenprojekt';
 
 export default {
   name: 'App',
@@ -51,7 +52,9 @@ export default {
       selectedKasse:{},
       darkMode: false,
       fullscreen: null,
-      online: false
+      online: false,
+
+      konvKey: ''
     };
   },
   computed:{
@@ -212,7 +215,7 @@ export default {
       this.selectedDesktop = desktop;
       console.log(desktop);
     },
-    addKassenprojekt(obj){
+    async addKassenprojekt(obj){
       let newId;
       if(this.kassenprojekte.length > 0){
         this.kassenprojekte.sort((a,b) => a.Id - b.Id);
@@ -227,22 +230,46 @@ export default {
         password: obj.password,
         image: obj.image
       }
-      this.kassenprojekte.push(newObj);
-      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));
+      /*this.kassenprojekte.push(newObj);
+      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));*/
+      try{
+        await Kassenprojekt.add(newObj);
+      } catch(err){
+        Kassenprojekt.addLocal(newObj);
+      }
+      this.getKassenprojekte();
     },
-    deleteKassenprojekt(obj){
-      this.kassenprojekte = this.kassenprojekte.filter(p => p.Id != obj.Id);
-      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));
+    async deleteKassenprojekt(obj){
+      /*this.kassenprojekte = this.kassenprojekte.filter(p => p.Id != obj.Id);
+      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));*/
+      try{
+        await Kassenprojekt.delete(obj);
+      } catch(err){
+        Kassenprojekt.deleteLocal(obj);
+      }
+      this.getKassenprojekte();
     },
-    changeKassenprojektName(obj){
-      let index = this.kassenprojekte.findIndex(o=>o.Id == obj.Id);
+    async changeKassenprojektName(obj){
+      /*let index = this.kassenprojekte.findIndex(o=>o.Id == obj.Id);
       this.kassenprojekte[index].name = obj.name;
-      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));
+      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));*/
+      try{
+        await Kassenprojekt.update(obj)
+      } catch(err){
+        Kassenprojekt.updateLocal(obj)
+      }
+      this.getKassenprojekte();
     },
-    changeKassenprojektPassword(obj){
-      let index = this.kassenprojekte.findIndex(o=>o.Id == obj.Id);
+    async changeKassenprojektPassword(obj){
+      /*let index = this.kassenprojekte.findIndex(o=>o.Id == obj.Id);
       this.kassenprojekte[index].password = obj.password;
-      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));
+      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));*/
+      try{
+        await Kassenprojekt.update(obj)
+      } catch(err){
+        Kassenprojekt.updateLocal(obj)
+      }
+      this.getKassenprojekte();
     },
     goBack(){
       switch (true) {
@@ -253,15 +280,18 @@ export default {
           this.toKassenprojekt();
           break;
       }
+    },
+    async getKassenprojekte(){
+      try{
+        this.kassenprojekte = await Kassenprojekt.get(this.konvKey)
+      } catch(err){
+        this.kassenprojekte = Kassenprojekt.getLocal()
+      }
     }
   },
-  created(){
+  async created(){
     this.requestFullscreen();
-    try{
-      this.kassenprojekte = JSON.parse(`${this.kassenprojektItems}`);
-    } catch(err){
-      this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));
-    }
+    this.getKassenprojekte();
   }
 };
 </script>

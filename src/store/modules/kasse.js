@@ -9,7 +9,8 @@ export default {
     pfandItemsSichtbarkeit: false,
     belegItems: false,
     desktopItems: false,
-    kassenprojektItems: false
+    kassenprojektItems: false,
+    updateZeiger: false,
   }),
   mutations: {
     SET_RIGHT_PANEL_WIDTH(state, px) { state.rightPanelWidth = px; },
@@ -20,6 +21,7 @@ export default {
     SET_PFAND_ITEMS_SICHTBARKEIT(state, px) {state.pfandItemsSichtbarkeit = px},
     SET_BELEG_ITEMS(state, px) {state.belegItems = px; },
     SET_DESKTOP_ITEMS(state, px) {state.desktopItems = px; },
-    SET_KASSENPROJEKT_ITEMS(state, px) {state.kassenprojektItems = px; }
+    SET_KASSENPROJEKT_ITEMS(state, px) {state.kassenprojektItems = px; },
+    SET_UPDATE_ZEIGER(state, px) {state.updateZeiger = px; }
   }
 };

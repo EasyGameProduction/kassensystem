@@ -123,7 +123,7 @@
   </div>
 
   <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" @clearArtikelSichtbarkeit="this.clearArtikelSichtbarkeit" @clearPfandSichtbarkeit="this.clearPfandSichtbarkeit" @deleteBelege="this.deleteBelege"/>
-  <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.getDesktops()" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
+  <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.desktops" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
   <Rechner v-if="this.rechnerActive" :active="this.rechnerActive" :rechnerBetrag="this.rechnungsbetrag" @closeRechner="this.rechnerActive = !this.rechnerActive"/>
 </template>
 
@@ -143,6 +143,7 @@ import Menu from '@/components/Menu.vue';
 import DesktopSwitch from '@/components/DesktopSwitch.vue';
 import Swal from 'sweetalert2';
 import Rechner from '@/components/Rechner.vue';
+import { Desktop } from '@/backend_controller/desktop';
 
 export default {
   name: 'KassensystemMain',
@@ -194,6 +195,7 @@ export default {
       pfandItems: [],
       artikelAuswahl: [],
       pfandAuswahl: [],
+      desktops: [],
 
       letzteBestellung: {
         artikelAuswahl: [],
@@ -461,10 +463,15 @@ export default {
       this.getPfandStore();
       this.removeWAll();
     },
-    getDesktops(){
-      let desktops = JSON.parse(this.$store.state.kasse.desktopItems);
+    async getDesktops(){
+      try{
+        this.desktops = await Desktop.get(this.$props.selectedKassenprojekt.Id)
+      } catch(err){
+        this.desktops = Desktop.getLocal(this.$props.selectedKassenprojekt.Id)
+      }
+      /*let desktops = JSON.parse(this.$store.state.kasse.desktopItems);
       desktops = desktops.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id);
-      return desktops;
+      return desktops;*/
     },
     getArtikel(){
       try {
@@ -479,7 +486,9 @@ export default {
     },
     getArtikelStore(){
       this.artikelItems = JSON.parse(this.$store.state.kasse.artikelItems);
-      this.artikelItems = this.artikelItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+      if(this.artikelItems != false && this.artikelItems.length > 0){
+        this.artikelItems = this.artikelItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+      }
     },
     getPfand(){
       try{
@@ -494,7 +503,9 @@ export default {
     },
     getPfandStore(){
       this.pfandItems = JSON.parse(this.$store.state.kasse.pfandItems);
-      this.pfandItems = this.pfandItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+      if(this.pfandItems != false && this.pfandItems.length > 0){
+        this.pfandItems = this.pfandItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+      }
     },
     setArticleItems(artikelItems){
       this.artikelItems = artikelItems;
@@ -882,7 +893,8 @@ export default {
           text: "Sie können über Menü->Daten neue Artikel anlegen",
           icon: "info"
         });
-    }
+    };
+    this.getDesktops();
   },
   mounted(){
     const showTotalEl = document.getElementById("showTotal");
