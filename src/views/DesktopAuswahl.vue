@@ -120,7 +120,7 @@ export default {
         }*/
        
         let newId;
-        if(this.desktops.length > 0){
+        if(this.desktops!= false && this.desktops!=undefined && this.desktops!= '' &&this.desktops.length > 0){
           this.desktops.sort((a,b) => a.Id - b.Id);
           newId = +this.desktops[this.desktops.length-1].Id + 1;
         } else{

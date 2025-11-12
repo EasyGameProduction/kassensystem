@@ -201,7 +201,7 @@ export default {
     },
     async addKassenprojekt(obj){
       let newId;
-      if(this.kassenprojekte.length > 0){
+      if(this.kassenprojekte != false && this.kassenprojekte!=undefined && this.kassenprojekte != '' && this.kassenprojekte.length > 0){
         this.kassenprojekte.sort((a,b) => a.Id - b.Id);
         newId = +this.kassenprojekte[this.kassenprojekte.length-1].Id + 1;
       } else{
