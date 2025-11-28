@@ -26,7 +26,7 @@
     </header>
 
     <main class="workspace" role="list" aria-label="Kassenprojekte">
-      <AuswahlItem v-for="kassenItem in kassenprojekte" role="button" tabindex="0" :key="kassenItem.Id" @click="$emit('selectKassenprojekt', kassenItem)" @keydown.enter="$emit('selectKassenprojekt', kassenItem)" :item="kassenItem" @delete="this.delete(kassenItem)" @changeName="this.changeName" @changePassword="this.changePassword" :darkMode="this.darkMode"/>
+      <AuswahlItem v-for="kassenItem in kassenprojekte" role="button" tabindex="0" :key="kassenItem.Id" @click="$emit('selectKassenprojekt', kassenItem)" @keydown.enter="$emit('selectKassenprojekt', kassenItem)" :item="kassenItem" @delete="this.delete(kassenItem)" @changeName="this.changeName" @changePassword="this.changePassword" @inviteUser="this.inviteUser" :darkMode="this.darkMode" :type="'K'"/>
       <div class="addItem" @click="this.addKassenprojekt()">
         <button class="add">+</button>
       </div>
@@ -134,6 +134,112 @@ export default {
     },
     changePassword(kassenprojekt){
       this.$emit('changePassword', kassenprojekt);
+    },
+    async inviteUser(kassenprojekt){
+      let text="http://localhost:8080/:asfidhpaiosfhidfas3476"
+
+      this.createInvitePopup(text, kassenprojekt);
+    },
+    async createInvitePopup(text, kassenprojekt){
+      Swal.fire({
+        title: 'Einladung teilen',
+        html:
+          `<textarea id="swalText" class="swal-textarea" readonly>${this.escapeHtml(text)}</textarea>` +
+          `<br><button id="swalCopy" class="swal-copy-btn" type="button">Kopieren</button>`,
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Teilen',
+        denyButtonText: 'E-Mail verschicken',
+        cancelButtonText: 'Schließen',
+        cancelButtonColor: '#dc3741',
+        denyButtonColor: '#6e7881',
+        width: 600,
+        didOpen: () => {
+          // Copy-Button Hook
+          const copyBtn = document.getElementById('swalCopy');
+          copyBtn.addEventListener('click', async () => {
+            try {
+              await this.copyToClipboard(text);
+              Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Einladung kopiert', timer: 1500, showConfirmButton: false });
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Kopieren fehlgeschlagen', text: 'Bitte manuell kopieren.' });
+            }
+          });
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.handleShare(text);
+        } else if (result.isDenied) {
+          this.sendEmail(text, kassenprojekt);
+        }
+      });
+    },
+    escapeHtml(s){
+      return s
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    },
+    async handleShare(text) {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Teilen',
+            text: text,
+          });
+        } catch (err) {
+        }
+      } else {
+        // Fallback: Zeige manuelle Share-Links in einem neuen Swal
+        const encoded = encodeURIComponent(text);
+        const shareHtml =
+          `<div class="share-list">` +
+          `<a href="https://wa.me/?text=${encoded}" target="_blank" rel="noopener">WhatsApp öffnen</a>` +
+          `<a href="https://t.me/share/url?url=&text=${encoded}" target="_blank" rel="noopener">Telegram</a>` +
+          `<a href="https://twitter.com/intent/tweet?text=${encoded}" target="_blank" rel="noopener">Twitter</a>` +
+          `<a href="https://www.facebook.com/sharer/sharer.php?u=&quote=${encoded}" target="_blank" rel="noopener">Facebook</a>` +
+          `<a href="mailto:?subject=${encodeURIComponent('Text teilen')}&body=${encoded}" target="_self" rel="noopener">E-Mail senden</a>` +
+          `</div>`;
+        Swal.fire({
+          title: 'Teilen (Browser unterstützt kein natives Teilen)',
+          html: shareHtml,
+          showCloseButton: true,
+          showConfirmButton: false,
+          width: 520
+        });
+      }
+    },
+    async sendEmail(text, kassenprojekt){
+      const subject = encodeURIComponent('Einladung zum Kassenprojekt: ' + kassenprojekt.name);
+      const body = encodeURIComponent(text + "\n\n--\nKassensystem");
+      window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    },
+    async copyToClipboard(text){
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text);
+      } else {
+        // Fallback: temporäres textarea
+        return new Promise((resolve, reject) => {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          // Make it invisible
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) resolve();
+            else reject(new Error('execCommand failed'));
+          } catch (err) {
+            document.body.removeChild(ta);
+            reject(err);
+          }
+        });
+      }
     }
   }
 };

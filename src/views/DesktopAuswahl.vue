@@ -26,7 +26,7 @@
     </header>
 
     <main class="workspace" role="list" aria-label="Kassenprojekte">
-      <AuswahlItem v-for="desktopItem in desktops" role="button" tabindex="0" :key="desktopItem.Id" @click="$emit('selectDesktop', desktopItem)" @keydown.enter="$emit('selectDesktop', desktopItem)" :item="desktopItem" @delete="this.delete(desktopItem)" @changeName="this.changeName" :darkMode="this.darkMode"/>
+      <AuswahlItem v-for="desktopItem in desktops" role="button" tabindex="0" :key="desktopItem.Id" @click="$emit('selectDesktop', desktopItem)" @keydown.enter="$emit('selectDesktop', desktopItem)" :item="desktopItem" @delete="this.delete(desktopItem)" @changeName="this.changeName" :darkMode="this.darkMode" :type="'D'"/>
       <div class="addItem" @click="this.addDesktop()">
         <button class="add">+</button>
       </div>

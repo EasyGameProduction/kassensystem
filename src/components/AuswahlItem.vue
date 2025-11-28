@@ -10,6 +10,7 @@
 
       <div class="moreContainer" v-if="activeMoreId == item.Id">
           <!--<div class="moreItems">Bild ändern</div>-->
+          <div v-if="type=='K'" class="moreItems" @click.stop="this.inviteUser(item)">Benutzer einladen</div>
           <div class="moreItems" @click.stop="this.changeName(item)">Namen ändern</div>
           <div class="moreItems" @click.stop="this.changePassword(item)">Passwort ändern</div>
           <div class="moreItems" @click.stop="this.delete(item)">Löschen</div>
@@ -24,7 +25,8 @@ export default {
   name: 'AuswahlItem',
   props: {
     item: Object,
-    darkMode: Boolean
+    darkMode: Boolean,
+    type: String
   },
   data() {
     return {
@@ -64,6 +66,10 @@ export default {
           this.$emit('delete', item)
         }
       });
+      this.activeMoreId = false;
+    },
+    async inviteUser(item){
+      this.$emit('inviteUser', item);
       this.activeMoreId = false;
     },
     async changeName(item){
