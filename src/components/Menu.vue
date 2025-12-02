@@ -108,7 +108,7 @@
           </template>
         </draggable>
         <br/>
-        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📥</button></div></div>
+        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📤</button><button class="importButton" @click="this.importWithSwal('pfand')">📥</button></div></div>
         <draggable
           v-model="pfandItems"
           item-key="id"
