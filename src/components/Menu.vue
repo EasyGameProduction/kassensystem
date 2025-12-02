@@ -57,7 +57,7 @@
     <main class="rightContainer" role="main">
       <div id="daten" class="contentContainer" v-if="daten">
         <h1>Daten</h1>
-        <div class="datenHeader"><h2>Artikel:</h2><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📤</button><button class="importButton" @click="this.importWithSwal('artikel')">📥</button></div></div>
+        <div class="datenHeader"><h2>Artikel:</h2><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📥</button><button class="importButton" @click="this.importWithSwal('artikel')">📤</button></div></div>
 
         <!-- draggable wrapper: v-model linked to items -->
         <draggable
@@ -108,7 +108,7 @@
           </template>
         </draggable>
         <br/>
-        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📤</button><button class="importButton" @click="this.importWithSwal('pfand')">📥</button></div></div>
+        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📤</button></div></div>
         <draggable
           v-model="pfandItems"
           item-key="id"
@@ -477,7 +477,6 @@ export default {
           text: 'Wähle eine semikolon-separierte CSV-Datei (UTF-8, ggf. mit BOM).',
           input: 'file',
           inputAttributes: {
-            accept: '.csv, text/csv, application/vnd.ms-excel',
             'aria-label': 'Lade eine CSV-Datei hoch'
           },
           showCancelButton: true,
