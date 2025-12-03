@@ -1,5 +1,5 @@
 <template>
-  <div :style="cssVars">
+  <div :style="cssVars" id="mainApp">
     <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword"/>
     <DesktopAuswahl v-if="this.desktopAuswahl" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
     <KassensystemMain v-if="this.kassensystemMain" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @selectDesktop="this.selectDesktop"/>
@@ -274,7 +274,7 @@ export default {
     }
   },
   async created(){
-    this.requestFullscreen();
+    //this.requestFullscreen();
     this.getKassenprojekte();
   }
 };
@@ -284,7 +284,7 @@ export default {
   body{
     margin: 0;
     height: 100vh;
-    width: 100vw;
+    //width: 100vw;
     overflow:hidden;
     font: 15px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   }
@@ -308,5 +308,9 @@ export default {
   }
   .backButton:hover{
     background-color: var(--hover);
+  }
+
+  #mainApp{
+      width: 100vw;
   }
 </style>

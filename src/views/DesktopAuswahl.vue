@@ -262,7 +262,7 @@ export default {
   font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
   overflow: hidden;
   height: 100vh;
-  width: 100vw;
+  width: 100%;
 
   .topbar {
     /* Header unverändert — Styles belassen wie von dir vorgegeben */

@@ -858,7 +858,7 @@ export default {
   right: 0;
   top: 0;
   bottom: 0;
-  width: 100vw;
+  width: 100%;
   /*height: 100vh;*/
   background-color: var(--bg, rgba(250, 250, 254, 0.96));
   display: grid;

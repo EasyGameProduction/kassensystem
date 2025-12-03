@@ -922,7 +922,7 @@ export default {
   overflow: hidden;
 
   height: 100vh;
-  width: 100vw;
+  width: 100%;
 
   .topbar {
     display: grid;
