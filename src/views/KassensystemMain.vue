@@ -146,6 +146,7 @@ import Swal from 'sweetalert2';
 import Rechner from '@/components/Rechner.vue';
 import { Desktop } from '@/backend_controller/desktop';
 import { Artikel } from '@/backend_controller/artikel';
+import { Pfand } from '@/backend_controller/pfand';
 
 export default {
   name: 'KassensystemMain',
@@ -342,7 +343,7 @@ export default {
       console.log(this.artikelAuswahl);
 
       let preis = +this.artikelItems.find(a=>a.Id == artikel.Id).preis;
-      if(artikel.pfandId != undefined){
+      if(artikel.pfandId != undefined && artikel.pfandId != ""){
         preis += +this.pfandItems.find(p=>p.Id == artikel.pfandId).preis;
       }
       this.changeRechnungsbetrag(+this.rechnungsbetrag + +preis);
@@ -374,7 +375,7 @@ export default {
       }
 
       let preis = +this.artikelItems.find(a=>a.Id == artikel.Id).preis;
-      if(artikel.pfandId != undefined){
+      if(artikel.pfandId != undefined && artikel.pfandId != ""){
         preis += +this.pfandItems.find(p=>p.Id == artikel.pfandId).preis;
       }
       this.changeRechnungsbetrag(+this.rechnungsbetrag - +preis);
@@ -394,7 +395,7 @@ export default {
       this.artikelAuswahl.splice(index,1);
 
       let preis = +this.artikelItems.find(a=>a.Id == artikel.Id).preis * anzahl;
-      if(artikel.pfandId != undefined){
+      if(artikel.pfandId != undefined && artikel.pfandId != ""){
         preis += +this.pfandItems.find(p=>p.Id == artikel.pfandId).preis * anzahl;
       }
       this.changeRechnungsbetrag(+this.rechnungsbetrag - +preis);
@@ -464,7 +465,7 @@ export default {
       await this.$emit('selectDesktop', desktop);
       this.desktopSwitchActive = false;
       this.getArtikel();
-      this.getPfandStore();
+      this.getPfand();
       this.removeWAll();
     },
     async getDesktops(){
@@ -504,21 +505,26 @@ export default {
         Artikel.addLocal(artikel)
       }
     },
-    getPfand(){
+    async deletePfandItem(pfand){
       try{
-        this.pfandItems = JSON.parse(this.$store.state.kasse.pfandItems)
+        await Pfand.delete(pfand)
       } catch(err){
-        this.$store.commit('kasse/SET_PFAND_ITEMS',JSON.stringify(this.pfandItems));
-      }
-
-      if(this.pfandItems.length > 0){
-        this.pfandItems = this.pfandItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        Pfand.deleteLocal(pfand)
       }
     },
-    getPfandStore(){
-      this.pfandItems = JSON.parse(this.$store.state.kasse.pfandItems);
-      if(this.pfandItems != false && this.pfandItems.length > 0){
-        this.pfandItems = this.pfandItems.filter(obj => obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+    async appendPfand(pfand){
+      try{
+        await Pfand.add(pfand)
+      } catch(err){
+        Pfand.addLocal(pfand)
+      }
+    },
+    async getPfand(){
+      try{
+        this.pfandItems = await Pfand.get(this.$props.selectedKassenprojekt.Id, this.$props.selectedDesktop.Id)
+        console.log(this.pfandItems);
+      } catch(err){
+        this.pfandItems = Pfand.getLocal(this.$props.selectedKassenprojekt.Id, this.$props.selectedDesktop.Id)
       }
     },
     async setArticleItems(artikelItems){
@@ -533,51 +539,16 @@ export default {
       }
       this.artikelItems = artikelItems;
     },
-    setPfandItems(pfandItems){
-      this.pfandItems = pfandItems;
-
-      let itemsStore = JSON.parse(this.$store.state.kasse.pfandItems);
-      if(itemsStore){
-        this.pfandItems.forEach(item => {
-          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
-          if(index >= 0){
-            //itemsStore[index] = item;
-            itemsStore.splice(index, 1);
-            itemsStore.push(item);
-          } else{
-            itemsStore.push(item)
-          }
-        });
-
-        let delItems = new Array();
-        itemsStore.forEach(item=>{
-          let index = itemsStore.findIndex(obj=>obj.Id == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
-          if(index < 0){
-            delItems.push({index: index});
-          }
-        })
-
-        delItems.sort((a,b) =>b.index - a.index);
-        delItems.forEach(obj=>{
-          itemsStore.splice[obj.index, 1];
-        })
-
-        itemsStore = itemsStore.filter(storeItem => {
-          if (
-            storeItem.desktopID !== this.$props.selectedDesktop.Id ||
-            storeItem.kassenprojektID !== this.$props.selectedKassenprojekt.Id
-          ) {
-            return true;
-          }
-
-          return this.pfandItems.some(item =>
-            item.Id === storeItem.Id
-          );
-        });
-      } else{
-        itemsStore = this.pfandItems;
+    async setPfandItems(pfandItems){
+      if (!pfandItems) {
+        this.pfandItems = [];
+        return;
       }
-      this.$store.commit('kasse/SET_PFAND_ITEMS',JSON.stringify(itemsStore));
+      await Pfand.deleteLocalFromDesktop(this.$props.selectedKassenprojekt.Id, this.$props.selectedDesktop.Id)
+      for (const item of pfandItems) {
+        this.appendPfand(item);
+      }
+      this.pfandItems = pfandItems;
     },
     setArtikelSichtbarkeit(item){
       let index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
@@ -669,8 +640,10 @@ export default {
         this.pfandItemsSichtbarkeit = new Array();
       }
       this.pfandItemsSichtbarkeit.push(pfandSichtbarkeit);
-      this.setPfandItems(this.pfandItems);
+      //this.setPfandItems(this.pfandItems);
+      this.appendPfand(pfand);
       this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+      console.log(this.pfandItems);
     },
     getArtikelSichtbarkeit(){
       this.artikelItemsSichtbarkeit = JSON.parse(this.$store.state.kasse.artikelItemsSichtbarkeit)
@@ -717,7 +690,8 @@ export default {
       this.pfandItemsSichtbarkeit.splice(index, 1);
       this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
 
-      this.setPfandItems(this.pfandItems);
+      this.deletePfandItem(item);
+      //this.setPfandItems(this.pfandItems);
     },
     getItemVisible(item, objekt){
       if(objekt == 'artikel'){
@@ -761,7 +735,7 @@ export default {
                 desktopID: pfand.desktopID,
                 sichtbar: false
               }
-              this.pfandSichtbarkeit.push(pfandSichtbarkeit);
+              this.pfandItemsSichtbarkeit.push(pfandSichtbarkeit);
               this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
             }
           } catch(err2){
@@ -875,7 +849,7 @@ export default {
     }
 
     await this.getArtikel();
-    this.getPfand();
+    await this.getPfand();
     this.getArtikelSichtbarkeit();
     this.getPfandSichtbarkeit();
     if((this.artikelItems == undefined || this.artikelItems.length == 0) && (this.pfandItems == undefined || this.pfandItems.length == 0)){

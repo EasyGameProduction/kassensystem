@@ -111,7 +111,7 @@
         <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📤</button></div></div>
         <draggable
           v-model="pfandItems"
-          item-key="id"
+          item-key="Id"
           class="itemsWrapper"
           ghost-class="drag-ghost"
           chosen-class="drag-chosen"
@@ -119,14 +119,14 @@
           @end="onDragEndPfand"
         >
           <template #item="{ element: item, index }">
-            <div class="itemContainer" :data-id="item.id" >
+            <div class="itemContainer" :data-id="item.Id" >
               <div class="itemHeader">
                 <button class="loeschen" @click="this.deletePfand(item)">🗑</button>
                 <button class="colorWheel" @click="this.openColorPicker(item)"><div class="dot"  :style="'background-color: ' + ((darkMode)?item.bgcolor:item.color)"></div></button>
 
                 <span class="dragHandle" title="Ziehen">⠿</span>
                 <input
-                    :id="'bezeichnung-'+item.id"
+                    :id="'bezeichnung-'+item.Id"
                     maxlength="20"
                     placeholder="Bezeichnung"
                     type="text"
@@ -136,9 +136,9 @@
                 <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Unsichtbar" v-if="!pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
               </div>
 
-              <label :for="'preis-'+item.id">Preis (€): </label>
+              <label :for="'preis-'+item.Id">Preis (€): </label>
               <input
-                :id="'preis-'+item.id"
+                :id="'preis-'+item.Id"
                 placeholder="Preis"
                 type="number"
                 step="0.01"
@@ -363,8 +363,8 @@ export default {
     updateArtikel(artikel){
       this.$emit('updateArtikel', artikel)
     },
-    updatePfand(){
-      this.$emit('updatePfand')
+    updatePfand(pfand){
+      this.$emit('updatePfand', pfand)
     },
     deleteArtikel(item){
       this.$emit('deleteArtikel',item);
@@ -780,7 +780,7 @@ export default {
     pfand(newVal) {
         if (newVal) {
             this.pfandItems = this.$props.pfand;
-            this.$emit('setPfandItems', this.pfandItems);
+            //this.$emit('setPfandItems', this.pfandItems);
         }
     },
     itemTitleSize(newVal){
