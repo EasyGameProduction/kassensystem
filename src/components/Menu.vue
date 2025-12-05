@@ -78,7 +78,7 @@
                 <span class="dragHandle" title="Ziehen">⠿</span>
                 <input
                     :id="'bezeichnung-'+item.id"
-                    maxlength="20"
+                    maxlength="40"
                     placeholder="Bezeichnung"
                     type="text"
                     v-model="item.bezeichnung"

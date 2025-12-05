@@ -746,7 +746,6 @@ export default {
       }
     },
     showLetzteBestellung(){
-      console.log("test");
       this.artikelAuswahl = this.letzteBestellung.artikelAuswahl;
       this.pfandAuswahl = this.letzteBestellung.pfandAuswahl;
       this.rechnungsbetrag = this.letzteBestellung.rechnungsbetrag;
@@ -761,10 +760,14 @@ export default {
           }
           index--;
         }
-        if(index > 0){
+        if(index >= 0){
           this.artikelAuswahl = stornoBeleg.artikelAuswahl;
           this.pfandAuswahl = stornoBeleg.pfandAuswahl;
           this.rechnungsbetrag = stornoBeleg.rechnungsbetrag;
+        } else{
+          this.artikelAuswahl = [];
+          this.pfandAuswahl = [];
+          this.rechnungsbetrag = '0.00';
         }
       }
     },
@@ -782,7 +785,7 @@ export default {
           }
           index--;
         }
-        if(index > 0){
+        if(index >= 0){
           await Swal.fire({
             title: "Bestellung mit Rechnungsbetrag: " + stornoBeleg.rechnungsbetrag + " € wirklich stornieren?",
             showCancelButton: true,
