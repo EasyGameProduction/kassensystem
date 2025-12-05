@@ -606,6 +606,7 @@ export default {
       this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
     },
     addPfandItem(pfandDefault){
+      console.log(this.pfandItems);
       let newId;
       if(this.pfandItems != undefined && this.pfandItems.length > 0){
         newId = +this.pfandItems[this.pfandItems.length-1].Id + 1;

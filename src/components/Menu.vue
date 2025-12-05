@@ -561,7 +561,7 @@ export default {
           }
           this.pfandItems = this.importedData;
           this.$emit('clearPfandSichtbarkeit');
-          this.$emit('setPfandItems', []);
+          //this.$emit('setPfandItems', []);
           this.pfandItems.forEach(obj=>{
             this.$emit('addPfand', obj)
           })
@@ -775,11 +775,15 @@ export default {
         if (newVal) {
             this.artikelItems = this.$props.artikel;
             //this.$emit('setArticleItems', this.artikelItems);
+            console.log("Artikel:");
+            console.log(this.artikelItems);
         }
     },
     pfand(newVal) {
         if (newVal) {
             this.pfandItems = this.$props.pfand;
+            console.log("Pfand:");
+            console.log(this.pfandItems);
             //this.$emit('setPfandItems', this.pfandItems);
         }
     },
