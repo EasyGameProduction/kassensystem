@@ -734,7 +734,7 @@ export default {
                 pfandId: pfand.Id,
                 kassenprojektID: pfand.kassenprojektID,
                 desktopID: pfand.desktopID,
-                sichtbar: false
+                sichtbar: true
               }
               this.pfandItemsSichtbarkeit.push(pfandSichtbarkeit);
               this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
