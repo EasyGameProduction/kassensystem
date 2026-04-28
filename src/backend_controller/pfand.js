@@ -6,7 +6,10 @@ export class Pfand{
     static async get(kassenprojektId, desktopId){
         try{
             const response = await axios.get(
-                `${Settings.url}/pfandByKassenprojektDesktop/${kassenprojektId}/${desktopId}`
+                `${Settings.url}/pfandByKassenprojektDesktop/${kassenprojektId}/${desktopId}`,
+                {
+                    timeout: 2000
+                }
             );
 
             let data = response.data;
@@ -17,8 +20,12 @@ export class Pfand{
                     data = data.filter(obj=>obj.kassenprojektID == kassenprojektId && obj.desktopID == desktopId);
                 }
             }
+
+            store.commit('kasse/SET_PFAND_ITEMS',JSON.stringify(data));
+            store.commit('kasse/SET_ONLINE', true);
             return data;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -38,12 +45,22 @@ export class Pfand{
     static async add(pfandItem){
         try{
             const response = await axios.post(
-                `${Settings.url}/addPfand/`,
+                `${Settings.url}/addPfand`,
                 pfandItem
             );
 
+            let pfandItems = JSON.parse(store.state.kasse.pfandItems);
+            if(pfandItems == false || pfandItems == undefined || pfandItems == '' || !pfandItems){
+                pfandItems = new Array();
+            }
+            pfandItems.push(pfandItem);
+
+            store.commit('kasse/SET_PFAND_ITEMS',JSON.stringify(pfandItems));
+
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -69,14 +86,18 @@ export class Pfand{
     }
 
     static async delete(pfandItem){
+        let kassenprojektID = pfandItem.kassenprojektID;
+        let desktopID = pfandItem.desktopID;
+        let Id = pfandItem.Id
         try{
             const response = await axios.delete(
-                `${Settings.url}/deletePfand/`,
-                { params: { kassenprojektID: pfandItem.kassenprojektID, desktopID: pfandItem.desktopID, Id: pfandItem.Id } }
+                `${Settings.url}/deletePfand/${Id}/${desktopID}/${kassenprojektID}`,
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -134,11 +155,13 @@ export class Pfand{
     static async update(pfandItem){
         try{
             const response = await axios.put(
-                `${Settings.url}/updatePfand/`, pfandItem
+                `${Settings.url}/updatePfand`, pfandItem
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }

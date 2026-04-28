@@ -131,6 +131,7 @@
                     placeholder="Bezeichnung"
                     type="text"
                     v-model="item.bezeichnung"
+                    @blur="this.updatePfand(item)"
                 />
                 <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Sichtbar" v-if="pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf06e;</span>
                 <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Unsichtbar" v-if="!pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
@@ -145,6 +146,7 @@
                 min="0.00"
                 max="999.99"
                 v-model.number="item.preis"
+                @blur="this.updatePfand(item)"
               />
             </div>
           </template>

@@ -13,7 +13,8 @@
           <button id="switchButton" :class="(this.desktopSwitchActive)?'switchActive':''" class="headerButton">&#9660;</button>
         </div>
       </div>
-      <div class="title">{{ selectedKasse.name }}</div>
+      <!--<div class="title">{{ selectedKasse.name }}</div>-->
+      <div class="title"><button @click="bargeld()" class="bargeldButton btn btn-primary btn-bestaetigen">Wechselgeld anfragen</button></div>
       <div class="right-actions">
         <div class="status"><span class="dot" :class="(online)?'online':'offline'"></span> {{ (online)?'online':'offline' }}</div>
         <label class="switch">
@@ -123,7 +124,7 @@
     </main>
   </div>
 
-  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" @clearArtikelSichtbarkeit="this.clearArtikelSichtbarkeit" @clearPfandSichtbarkeit="this.clearPfandSichtbarkeit" @deleteBelege="this.deleteBelege" @updateArtikel="this.updateArtikel"/>
+  <Menu :active="this.menuActive" :headerHeight="this.headerHeight" :style="cssVars" :artikel="this.artikelItems" :pfand="this.pfandItems" @setArticleItems="this.setArticleItems" @setPfandItems="this.setPfandItems" :artikelItemsSichtbarkeit="this.artikelItemsSichtbarkeit" :pfandItemsSichtbarkeit="this.pfandItemsSichtbarkeit" @setArtikelSichtbarkeit="this.setArtikelSichtbarkeit" @setPfandSichtbarkeit="this.setPfandSichtbarkeit" @addArtikel="this.addArtikelItem" @addPfand="this.addPfandItem" @deleteArtikel="this.deleteArtikel" @deletePfand="this.deletePfand" :darkMode="darkMode" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" @clearArtikelSichtbarkeit="this.clearArtikelSichtbarkeit" @clearPfandSichtbarkeit="this.clearPfandSichtbarkeit" @deleteBelege="this.deleteBelege" @updateArtikel="this.updateArtikel" @updatePfand="this.updatePfand"/>
   <DesktopSwitch :active="this.desktopSwitchActive" :headerHeight="this.headerHeight" :desktops="this.desktops" :kassenprojekt="selectedKassenprojekt" :style="cssVars" @switchDesktop="switchDesktop"/>
   <Rechner v-if="this.rechnerActive" :active="this.rechnerActive" :rechnerBetrag="this.rechnungsbetrag" @closeRechner="this.rechnerActive = !this.rechnerActive"/>
 </template>
@@ -147,6 +148,7 @@ import Rechner from '@/components/Rechner.vue';
 import { Desktop } from '@/backend_controller/desktop';
 import { Artikel } from '@/backend_controller/artikel';
 import { Pfand } from '@/backend_controller/pfand';
+import { Beleg } from '@/backend_controller/beleg';
 
 export default {
   name: 'KassensystemMain',
@@ -439,7 +441,7 @@ export default {
       }
 
       var neuerBeleg = {
-        time: Date.now(),
+        time: new Date(),
         kasse: this.$props.selectedKasse.Id,
         kassenprojektID: this.$props.selectedKassenprojekt.Id,
         desktopID: this.$props.selectedDesktop.Id,
@@ -449,7 +451,7 @@ export default {
         helferFrei: helferFrei
       }
 
-      try{
+      /*try{
         let belege = JSON.parse(this.$store.state.kasse.belegItems);
         belege.push(neuerBeleg);
         this.$store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(belege))
@@ -457,7 +459,8 @@ export default {
         let neueBelege = new Array();
         neueBelege.push(neuerBeleg);
         this.$store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(neueBelege))
-      }
+      }*/
+      this.appendBeleg(neuerBeleg);
       console.log(neuerBeleg);
       this.removeWAll();
     },
@@ -505,6 +508,22 @@ export default {
         Artikel.addLocal(artikel)
       }
     },
+    async appendBeleg(beleg){
+      try{
+        await Beleg.add(beleg)
+      } catch(err){
+        Beleg.addLocal(beleg)
+      }
+    },
+    async updatePfand(pfand){
+      if(pfand != undefined){
+        try{
+          await Pfand.update(pfand)
+        } catch(err){
+          Pfand.updateLocal(pfand)
+        }
+      }
+    },
     async deletePfandItem(pfand){
       try{
         await Pfand.delete(pfand)
@@ -529,7 +548,7 @@ export default {
     },
     async setArticleItems(artikelItems){
 
-      if (!artikelItems) {
+      /*if (!artikelItems) {
         this.artikelItems = [];
         return;
       }
@@ -537,10 +556,10 @@ export default {
       for (const item of artikelItems) {
         this.appendArtikel(item);
       }
-      this.artikelItems = artikelItems;
+      this.artikelItems = artikelItems;*/
     },
     async setPfandItems(pfandItems){
-      if (!pfandItems) {
+      /*if (!pfandItems) {
         this.pfandItems = [];
         return;
       }
@@ -548,7 +567,7 @@ export default {
       for (const item of pfandItems) {
         this.appendPfand(item);
       }
-      this.pfandItems = pfandItems;
+      this.pfandItems = pfandItems;*/
     },
     setArtikelSichtbarkeit(item){
       let index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
@@ -834,6 +853,7 @@ export default {
         let belege = JSON.parse(this.$store.state.kasse.belegItems);
         belege = belege.filter(obj=>obj.kassenprojektID != this.$props.selectedKassenprojekt.Id && obj.desktopID != this.$props.selectedDesktop.Id);
         this.belegItems = belege;
+        console.log(this.belegItems);
         this.$store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(belege));
       } catch(err){
         return;
@@ -844,6 +864,37 @@ export default {
         return this.pfandItems.find(p=>p.Id == pfandId)
       } catch(err){
         return undefined;
+      }
+    },
+    async bargeld(){
+      const emailData = {
+          to: 'sebastianpfuelb@gmail.com',
+          subject: 'Wechselgeld auffüllen: ' + this.$props.selectedDesktop.name,
+          text: 'Wechselgeld bei Kasse ' + this.$props.selectedDesktop.name + ' muss aufgefüllt werden.'
+      };
+
+      try {
+          const response = await fetch('https://feuerwehr-server.org:5000/send-email', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(emailData)
+          });
+
+          if (!response.ok) {
+              const errorText = await response.text(); // Fehlernachricht vom Server lesen
+              console.error('Error sending email:', errorText);
+              throw new Error(`Failed to send email: ${errorText}`);
+          } else{
+            Swal.fire({
+              title: "Kassiere benachrichtigt",
+              text: "Es wurde eine Email an die Kassiere geschickt.",
+              icon: "info"
+            })
+          }
+      } catch (error) {
+          console.error('Error in sendEmail:', error);
       }
     }
   },
@@ -888,6 +939,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+
 /* Basis */
 * { box-sizing: border-box; }
 :host, .kassensystemMain { height: 100%; }

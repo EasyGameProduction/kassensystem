@@ -5,7 +5,7 @@
             <h3 class="helferFrei" v-if="beleg.helferFrei == true">Helfer frei</h3>
             <div class="rechteSchrift">
                 <h2 class="Gesamt">{{ this.convertBetrag(beleg.rechnungsbetrag) }} €</h2>
-                <button @click.stop="this.deleteBeleg(beleg)" class="btn btn-danger trash">🗑</button>
+                <!--<button @click.stop="this.deleteBeleg(beleg)" class="btn btn-danger trash">🗑</button>-->
             </div>
         </div>
         <div class="bottom" v-if="beleg.open || this.checkBeleg(beleg)">
@@ -31,7 +31,7 @@
                         {{ this.getArtikelBezeichnung(artikel) }}
                     </div>
                     <div class="preis">
-                        {{ this.convertPreis(this.getArtikelPreis(artikel)) }} €
+                        {{ this.convertPreis(+this.getArtikelPreis(artikel)) }} €
                     </div>
                     <div class="anzahl">
                         {{ artikel.anzahl }}
@@ -45,7 +45,7 @@
                         {{ this.getArtikelPfandBezeichnung(artikel) }}
                     </div>
                     <div class="pfandPreis">
-                        {{ this.convertPreis(this.getArtikelPfandPreis(artikel)) }} €
+                        {{ this.convertPreis(+this.getArtikelPfandPreis(artikel)) }} €
                     </div>
                     <div class="pfandAnzahl">
                         {{ artikel.anzahl }}
@@ -77,7 +77,7 @@
                     {{ this.getPfand(pfand).bezeichnung }}
                 </div>
                 <div class="preis">
-                    - {{ this.convertPreis(this.getPfand(pfand).preis) }} €
+                    - {{ this.convertPreis(+this.getPfand(pfand).preis) }} €
                 </div>
                 <div class="anzahl">
                     {{ pfand.anzahl }}
@@ -93,6 +93,7 @@
 
 <script>
 import { mapState } from 'vuex';
+import { Beleg } from '../../backend_controller/beleg'
 
 export default {
   components: {
@@ -202,12 +203,13 @@ export default {
             obj.desktopID === beleg.desktopID)
         );
 
+        console.log(items);
         this.$store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(items));
         // optional: lokalen State synchronisieren
         this.belege = items;
     },
     getArtikel(artikel){
-        return this.artikelItems.find(obj=>obj.Id == artikel.Id);
+        return this.$props.artikelItems.find(obj=>obj.Id == artikel.Id);
     },
     getArtikelBezeichnung(artikel){
         try{ 
@@ -249,10 +251,20 @@ export default {
         } catch(err){
             return '';
         }
+    },
+    async getBelege(){
+        try{
+            this.belege = await Beleg.get(this.$props.selectedKassenprojekt.Id);
+        } catch(err){
+            this.belege = await Beleg.getLocal(this.$props.selectedKassenprojekt.Id);
+        }
+        this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        this.belege = this.belege.sort((a, b) => b.time - a.time);
     }
   },
   created() {
     try{
+        this.getBelege();
         this.belege = JSON.parse(this.$store.state.kasse.belegItems);
         this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
         this.belege = this.belege.sort((a, b) => b.time - a.time);

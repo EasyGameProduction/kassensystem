@@ -14,6 +14,9 @@ import DesktopAuswahl from './views/DesktopAuswahl.vue';
 import KassensystemMain from './views/KassensystemMain.vue';
 import Swal from 'sweetalert2';
 import { Kassenprojekt } from './backend_controller/kassenprojekt';
+import { Settings } from '@/backend_settings';
+import { Benutzer } from './backend_controller/benutzer';
+import CryptopJS from 'crypto-js';
 
 export default {
   name: 'App',
@@ -36,13 +39,12 @@ export default {
       selectedKasse:{},
       darkMode: false,
       fullscreen: null,
-      online: false,
 
       konvKey: ''
     };
   },
   computed:{
-    ...mapState('kasse', ['kassenprojektItems']),
+    ...mapState('kasse', ['kassenprojektItems','online']),
 
     cssVars() {
       // Alle Variablen zentral binden; Farben etc. können ebenfalls via Theme aus Vuex kommen
@@ -97,7 +99,7 @@ export default {
           '--grid-line': '#ffffff'
         };
       }
-    }
+    },
   },
   methods: {
     enterFullscreen(element) {
@@ -273,14 +275,142 @@ export default {
       } catch(err){
         this.kassenprojekte = Kassenprojekt.getLocal()
       }
-    }
+    },
+    async login(){
+      return new Promise(async (resolve) => {
+        const result = await this.registrierungsPopup();
+        resolve(result);
+      });
+    },
+    async loginPopup(){
+      const { value: formValues } = await Swal.fire({
+          title: "Einloggen",
+          html: `
+              <input id="swal-email" class="swal2-input" placeholder="E-Mail">
+              <input id="swal-password" type="password" class="swal2-input" placeholder="Passwort">
+          `,
+          focusConfirm: false,
+          showCancelButton: false,
+          showDenyButton: true,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          confirmButtonText: "Login",
+          denyButtonText: 'Registrieren',
+          confirmButtonColor: 'blue',
+          denyButtonColor: 'green',
+          preConfirm: () => {
+              const email = document.getElementById("swal-email").value;
+              const password = document.getElementById("swal-password").value;
+
+              if (!email || !password) {
+                  Swal.showValidationMessage("Bitte alle Felder ausfüllen");
+                  return false;
+              }
+
+              return { email, password };
+          },
+
+          preDeny: () => {
+            this.registrierungsPopup();
+            return;
+          }
+      });
+
+      if (formValues) {
+          console.log("Einloggen:", formValues);
+
+          try{
+            const response = await Benutzer.get(formValues.email, formValues.password);
+            Swal.fire('Hallo ' + response.vorname, 'Sie haben sich erfolgreich angemeldet', 'success')
+            localStorage.setItem("konvKey", response.konvKey);
+            this.konvKey = response.konvKey;
+            this.getKassenprojekte();
+          } catch(err){
+            await Swal.fire('Fehlgeschlagen', 'Die Anmeldung ist fehlgeschlagen', 'error');
+            this.loginPopup();
+          }
+      }
+    },
+    async registrierungsPopup(){
+      const { value: formValues } = await Swal.fire({
+          title: "Registrieren",
+          html: `
+              <input id="swal-email" class="swal2-input" placeholder="E-Mail">
+              <input id="swal-password" type="password" class="swal2-input" placeholder="Passwort">
+              <input id="swal-firstname" class="swal2-input" placeholder="Vorname">
+              <input id="swal-lastname" class="swal2-input" placeholder="Nachname">
+          `,
+          focusConfirm: false,
+          showCancelButton: false,
+          showDenyButton: true,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          confirmButtonText: "Registrieren",
+          denyButtonText: 'Zum Login',
+          confirmButtonColor: 'green',
+          denyButtonColor: 'blue',
+          preConfirm: () => {
+              const email = document.getElementById("swal-email").value;
+              const password = document.getElementById("swal-password").value;
+              const firstName = document.getElementById("swal-firstname").value;
+              const lastName = document.getElementById("swal-lastname").value;
+
+              if (!email || !password || !firstName || !lastName) {
+                  Swal.showValidationMessage("Bitte alle Felder ausfüllen");
+                  return false;
+              }
+
+              return { email, password, firstName, lastName };
+          },
+
+          preDeny: () => {
+            this.loginPopup();
+            return;
+          }
+      });
+
+      if (formValues) {
+          console.log("Registrierung:", formValues);
+
+          let konvKey = await this.encryptString(formValues.email + formValues.password + formValues.firstName + formValues.lastName)
+
+          let benutzerObj = {
+            konvKey: konvKey,
+            email: formValues.email,
+            passwort: formValues.password,
+            vorname: formValues.firstName,
+            nachname: formValues.lastName
+          }
+
+          try{
+            await Benutzer.add(benutzerObj);
+            Swal.fire('Hallo ' + benutzerObj.vorname, 'Die Registrierung war erfolgreich', 'success')
+            localStorage.setItem("konvKey", konvKey);
+            this.konvKey = konvKey;
+          } catch(err){
+            await Swal.fire('Fehlgeschlagen', 'Die Registrierung ist fehlgeschlagen', 'error')
+            this.registrierungsPopup();
+          }
+      }
+    },
+    encryptString(inputString){
+      var encrypted = CryptopJS.AES.encrypt(inputString, "ökas893q5högha83pqthASKHG§Z(ERQZ)").toString();
+      encrypted = encrypted.replace(/\//g, "z");
+      encrypted = encrypted.replace(/:/g, "y");
+      encrypted = encrypted.replace(/\./g, "9");
+      return encrypted;
+    },
   },
   async created(){
-    localStorage.setItem("konvKey", 'dafsjokj274');
+    //localStorage.setItem("konvKey", 'dafsjokj274');
     this.konvKey = localStorage.getItem("konvKey");
+
+    if(this.konvKey == null || this.konvKey == undefined || !this.konvKey){
+      await this.login();
+    }
     //this.requestFullscreen();
     this.getKassenprojekte();
-  }
+  },
 };
 </script>
 

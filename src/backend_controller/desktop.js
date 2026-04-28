@@ -6,7 +6,10 @@ export class Desktop{
     static async get(kassenprojektId){
         try{
             const response = await axios.get(
-                `${Settings.url}/desktopsByKassenprojekt/${kassenprojektId}`
+                `${Settings.url}/desktopsByKassenprojekt/${kassenprojektId}`,
+                {
+                    timeout: 2000
+                }
             );
 
             console.log(response.data);
@@ -18,8 +21,12 @@ export class Desktop{
                     data = data.filter(obj=>obj.kassenprojektID == kassenprojektId);
                 }
             }
+
+            store.commit('kasse/SET_DESKTOP_ITEMS',JSON.stringify(data));
+            store.commit('kasse/SET_ONLINE', true);
             return data;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -42,8 +49,10 @@ export class Desktop{
                 desktopItem
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -77,8 +86,10 @@ export class Desktop{
                 `${Settings.url}/deleteDesktopNeu/${Id}/${kassenprojektID}`,
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -118,8 +129,10 @@ export class Desktop{
                 `${Settings.url}/updateDesktop`, desktopItem
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }

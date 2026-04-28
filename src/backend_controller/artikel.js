@@ -6,7 +6,10 @@ export class Artikel{
     static async get(kassenprojektId, desktopId){
         try{
             const response = await axios.get(
-                `${Settings.url}/artikelByKassenprojektDesktop/${kassenprojektId}/${desktopId}`
+                `${Settings.url}/artikelByKassenprojektDesktop/${kassenprojektId}/${desktopId}`,
+                {
+                    timeout: 2000
+                }
             );
 
             console.log(response.data)
@@ -19,8 +22,11 @@ export class Artikel{
                     data = data.filter(obj=>obj.kassenprojektID == kassenprojektId && obj.desktopID == desktopId);
                 }
             }
+            store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(data));
+            store.commit('kasse/SET_ONLINE', true);
             return data;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -40,12 +46,21 @@ export class Artikel{
     static async add(artikelItem){
         try{
             const response = await axios.post(
-                `${Settings.url}/addArtikel/`,
+                `${Settings.url}/addArtikel`,
                 artikelItem
             );
+            console.log(response);
+            let artikelItems = JSON.parse(store.state.kasse.artikelItems);
+            if(artikelItems == false || artikelItems == undefined || artikelItems == '' || !artikelItems){
+                artikelItems = new Array();
+            }
+            artikelItems.push(artikelItem);
 
+            store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(artikelItems));
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -71,14 +86,18 @@ export class Artikel{
     }
 
     static async delete(artikelItem){
+        let kassenprojektID = artikelItem.kassenprojektID;
+        let desktopID = artikelItem.desktopID;
+        let Id = artikelItem.Id
         try{
             const response = await axios.delete(
-                `${Settings.url}/deleteArtikel/`,
-                { params: { kassenprojektID: artikelItem.kassenprojektID, desktopID: artikelItem.desktopID, Id: artikelItem.Id } }
+                `${Settings.url}/deleteArtikel/${Id}/${desktopID}/${kassenprojektID}`
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -136,11 +155,13 @@ export class Artikel{
     static async update(artikelItem){
         try{
             const response = await axios.put(
-                `${Settings.url}/updateArtikel/`, artikelItem
+                `${Settings.url}/updateArtikel`, artikelItem
             );
 
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }

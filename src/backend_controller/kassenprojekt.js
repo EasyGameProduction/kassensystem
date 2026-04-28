@@ -7,10 +7,16 @@ export class Kassenprojekt{
     static async get(konvKey){
         try{
             const response = await axios.get(
-                `${Settings.url}/kassenprojektByKonvKey/${konvKey}`
+                `${Settings.url}/kassenprojektByKonvKey/${konvKey}`,
+                {
+                    timeout: 2000
+                }
             );
+            store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(response.data));
+            store.commit('kasse/SET_ONLINE', true);
             return response.data;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -25,9 +31,11 @@ export class Kassenprojekt{
                 `${Settings.url}/addKassenprojektNeu`,
                 kassenprojektItem
             );
-
+            store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(kassenprojektItems));
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -59,8 +67,15 @@ export class Kassenprojekt{
                 `${Settings.url}/deleteKassenprojektNeu/${Id}`
             );
             console.log(response);
+            let kassenprojektItems = JSON.parse(store.state.kasse.kassenprojektItems);
+            let index = kassenprojektItems.findIndex(obj=>obj.Id == kassenprojektItem.Id);
+            kassenprojektItems.splice(index, 1);
+
+            store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(kassenprojektItems));
+            store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }
@@ -94,9 +109,16 @@ export class Kassenprojekt{
             const response = await axios.put(
                 `${Settings.url}/updateKassenprojekt`, kassenprojektItem
             );
+            let kassenprojektItems = JSON.parse(store.state.kasse.kassenprojektItems);
+            let index = kassenprojektItems.findIndex(obj=>obj.Id == kassenprojektItem.Id);
+            kassenprojektItems[index] = kassenprojektItem;
+            console.log(kassenprojektItems);
 
+            store.commit('kasse/SET_ONLINE', true);
+            store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(kassenprojektItems));
             return true;
         } catch(err){
+            store.commit('kasse/SET_ONLINE', false);
             throw err;
         }
     }

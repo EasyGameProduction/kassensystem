@@ -11,6 +11,7 @@ export default {
     desktopItems: false,
     kassenprojektItems: false,
     updateZeiger: false,
+    online: false,
   }),
   mutations: {
     SET_RIGHT_PANEL_WIDTH(state, px) { state.rightPanelWidth = px; },
@@ -22,6 +23,7 @@ export default {
     SET_BELEG_ITEMS(state, px) {state.belegItems = px; },
     SET_DESKTOP_ITEMS(state, px) {state.desktopItems = px; },
     SET_KASSENPROJEKT_ITEMS(state, px) {state.kassenprojektItems = px; },
-    SET_UPDATE_ZEIGER(state, px) {state.updateZeiger = px; }
+    SET_UPDATE_ZEIGER(state, px) {state.updateZeiger = px; },
+    SET_ONLINE(state, online) {state.online = online}
   }
 };

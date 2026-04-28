@@ -148,6 +148,7 @@ export default {
         try{
             this.belegItems = JSON.parse(this.$store.state.kasse.belegItems);
             this.belegItems = this.belegItems.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+            console.log(this.belegItems);
         } catch(err){
             this.belegItems = [];
         }
