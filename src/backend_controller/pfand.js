@@ -6,10 +6,10 @@ export class Pfand{
     static async get(kassenprojektId, desktopId){
         try{
             const response = await axios.get(
-                `${Settings.url}/pfandByKassenprojektDesktop/${kassenprojektId}-${desktopId}`
+                `${Settings.url}/pfandByKassenprojektDesktop/${kassenprojektId}/${desktopId}`
             );
 
-            let data = response.data.data;
+            let data = response.data;
             if(data == false || data == undefined || data == '' || !data){
                 data = new Array();
             } else{
@@ -70,7 +70,7 @@ export class Pfand{
 
     static async delete(pfandItem){
         try{
-            const response = await axios.post(
+            const response = await axios.delete(
                 `${Settings.url}/deletePfand/`,
                 { params: { kassenprojektID: pfandItem.kassenprojektID, desktopID: pfandItem.desktopID, Id: pfandItem.Id } }
             );

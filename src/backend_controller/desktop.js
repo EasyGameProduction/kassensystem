@@ -9,7 +9,8 @@ export class Desktop{
                 `${Settings.url}/desktopsByKassenprojekt/${kassenprojektId}`
             );
 
-            let data = response.data.data;
+            console.log(response.data);
+            let data = response.data;
             if(data == false || data == undefined || data == '' || !data){
                 data = new Array();
             } else{
@@ -37,7 +38,7 @@ export class Desktop{
     static async add(desktopItem){
         try{
             const response = await axios.post(
-                `${Settings.url}/addDesktop/`,
+                `${Settings.url}/addDesktop`,
                 desktopItem
             );
 
@@ -69,9 +70,11 @@ export class Desktop{
 
     static async delete(desktopItem){
         try{
-            const response = await axios.post(
-                `${Settings.url}/deleteDesktop/`,
-                { params: { kassenprojektID: desktopItem.kassenprojektID, Id: desktopItem.Id } }
+            let kassenprojektID = desktopItem.kassenprojektID;
+            let Id = desktopItem.Id;
+
+            const response = await axios.delete(
+                `${Settings.url}/deleteDesktopNeu/${Id}/${kassenprojektID}`,
             );
 
             return true;
@@ -79,6 +82,7 @@ export class Desktop{
             throw err;
         }
     }
+
     static deleteLocal(desktopItem){
         let updateZeiger = JSON.parse(store.state.kasse.updateZeiger);
         if(updateZeiger == false || updateZeiger == undefined || updateZeiger == '' || !updateZeiger){
@@ -111,7 +115,7 @@ export class Desktop{
     static async update(desktopItem){
         try{
             const response = await axios.put(
-                `${Settings.url}/updateDesktop/`, desktopItem
+                `${Settings.url}/updateDesktop`, desktopItem
             );
 
             return true;

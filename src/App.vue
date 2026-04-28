@@ -212,8 +212,10 @@ export default {
         Id: newId,
         name: obj.name,
         password: obj.password,
-        image: obj.image
+        image: obj.image,
+        benutzerKonvKey: obj.benutzerKonvKey
       }
+      console.log(newObj);
       /*this.kassenprojekte.push(newObj);
       this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));*/
       try{
@@ -274,6 +276,8 @@ export default {
     }
   },
   async created(){
+    localStorage.setItem("konvKey", 'dafsjokj274');
+    this.konvKey = localStorage.getItem("konvKey");
     //this.requestFullscreen();
     this.getKassenprojekte();
   }

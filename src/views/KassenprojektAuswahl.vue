@@ -78,7 +78,7 @@ export default {
     async addKassenprojekt(){
       let html = "";
       html += `<input id="name" maxLength="50" class="swal2-input" placeholder="Bezeichnung" style="margin-left:0 !important; margin-right: 0 !important; width: 100% !important">`;
-      html += `<input id="password" maxLength="50" class="swal2-input" placeholder="Passwort" style="margin-left:0 !important; margin-right: 0 !important; width: 100% !important">`;
+      //html += `<input id="password" maxLength="50" class="swal2-input" placeholder="Passwort" style="margin-left:0 !important; margin-right: 0 !important; width: 100% !important">`;
       html += `<input type="file" id="file" class="swal2-input" placeholder="Bild hochladen" style="margin-left:0 !important; margin-right: 0 !important; width: 100% !important">`;
 
       const { value: formValues } = await Swal.fire({
@@ -95,7 +95,7 @@ export default {
       if(formValues){
         const file = formValues.file;
         const name = formValues.name;
-        const password = formValues.password;
+        //const password = formValues.password;
 
         // FormData erstellen, um Bild zu senden
         const formData = new FormData();
@@ -117,11 +117,14 @@ export default {
         } catch (error) {
             console.error('Error uploading the file:', error);
         }*/
+        let konvKey = localStorage.getItem("konvKey");
+
        let kassenprojekt = {
         Id: undefined,
         name: name,
-        password: password,
-        image: undefined
+        //password: password,
+        image: undefined,
+        benutzerKonvKey: konvKey
        }
        this.$emit('addKassenprojekt', kassenprojekt);
       }
@@ -240,7 +243,7 @@ export default {
           }
         });
       }
-    }
+    },
   }
 };
 </script>

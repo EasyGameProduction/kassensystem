@@ -9,8 +9,7 @@ export class Kassenprojekt{
             const response = await axios.get(
                 `${Settings.url}/kassenprojektByKonvKey/${konvKey}`
             );
-
-            return response.data.data;
+            return response.data;
         } catch(err){
             throw err;
         }
@@ -20,9 +19,10 @@ export class Kassenprojekt{
     }
 
     static async add(kassenprojektItem){
+        console.log(kassenprojektItem)
         try{
             const response = await axios.post(
-                `${Settings.url}/addKassenprojekt/`,
+                `${Settings.url}/addKassenprojektNeu`,
                 kassenprojektItem
             );
 
@@ -54,11 +54,11 @@ export class Kassenprojekt{
 
     static async delete(kassenprojektItem){
         try{
-            const response = await axios.post(
-                `${Settings.url}/deleteKassenprojekt/`,
-                { params: { Id: kassenprojektItem.Id } }
+            let Id = kassenprojektItem.Id;
+            const response = await axios.delete(
+                `${Settings.url}/deleteKassenprojektNeu/${Id}`
             );
-
+            console.log(response);
             return true;
         } catch(err){
             throw err;
@@ -92,7 +92,7 @@ export class Kassenprojekt{
     static async update(kassenprojektItem){
         try{
             const response = await axios.put(
-                `${Settings.url}/updateKassenprojekt/`, kassenprojektItem
+                `${Settings.url}/updateKassenprojekt`, kassenprojektItem
             );
 
             return true;

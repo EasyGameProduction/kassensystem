@@ -6,10 +6,12 @@ export class Artikel{
     static async get(kassenprojektId, desktopId){
         try{
             const response = await axios.get(
-                `${Settings.url}/artikelByKassenprojektDesktop/${kassenprojektId}-${desktopId}`
+                `${Settings.url}/artikelByKassenprojektDesktop/${kassenprojektId}/${desktopId}`
             );
 
-            let data = response.data.data;
+            console.log(response.data)
+
+            let data = response.data;
             if(data == false || data == undefined || data == '' || !data){
                 data = new Array();
             } else{
@@ -70,7 +72,7 @@ export class Artikel{
 
     static async delete(artikelItem){
         try{
-            const response = await axios.post(
+            const response = await axios.delete(
                 `${Settings.url}/deleteArtikel/`,
                 { params: { kassenprojektID: artikelItem.kassenprojektID, desktopID: artikelItem.desktopID, Id: artikelItem.Id } }
             );

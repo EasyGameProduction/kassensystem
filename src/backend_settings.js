@@ -1,3 +1,3 @@
 export class Settings{
-    static url = '';
+    static url = 'https://feuerwehr-server.org:5000';
 }

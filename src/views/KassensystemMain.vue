@@ -859,7 +859,7 @@ export default {
     if((this.artikelItems == undefined || this.artikelItems.length == 0) && (this.pfandItems == undefined || this.pfandItems.length == 0)){
         Swal.fire({
           title: "Artikel hinzufügen",
-          text: "Sie können über Menü->Daten neue Artikel anlegen",
+          text: `Sie können über "Menü->Daten" neue Artikel anlegen`,
           icon: "info"
         });
     };

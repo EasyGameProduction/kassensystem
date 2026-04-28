@@ -12,7 +12,7 @@
           <!--<div class="moreItems">Bild ändern</div>-->
           <div v-if="type=='K'" class="moreItems" @click.stop="this.inviteUser(item)">Benutzer einladen</div>
           <div class="moreItems" @click.stop="this.changeName(item)">Namen ändern</div>
-          <div class="moreItems" @click.stop="this.changePassword(item)">Passwort ändern</div>
+          <div v-if="type!=='K'" class="moreItems" @click.stop="this.changePassword(item)">Passwort ändern</div>
           <div class="moreItems" @click.stop="this.delete(item)">Löschen</div>
       </div>
     </div>
