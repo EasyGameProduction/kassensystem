@@ -14,7 +14,7 @@
         </div>
       </div>
       <!--<div class="title">{{ selectedKasse.name }}</div>-->
-      <div class="title"><button @click="bargeld()" class="bargeldButton btn btn-primary btn-bestaetigen">Wechselgeld anfragen</button></div>
+      <div class="title"><button v-if="bargeldActive" @click="bargeld()" class="bargeldButton btn btn-primary btn-bestaetigen">Wechselgeld anfragen</button></div>
       <div class="right-actions">
         <div class="status"><span class="dot" :class="(online)?'online':'offline'"></span> {{ (online)?'online':'offline' }}</div>
         <label class="switch">
@@ -41,7 +41,7 @@
       <!-- Linke Seite -->
       <section class="left" id="leftPane" ref="leftPane">
         <div class="artikelAuswahl" id="artikelAuswahl">
-          <Item class="artikelItem" :type="'Artikel'" v-for="artikel in this.artikelItems" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" @addItem="this.addArtikel" v-show="this.getItemVisible(artikel, 'artikel')" :darkMode="this.darkMode"/>
+          <Item class="artikelItem" :type="'Artikel'" v-for="artikel in this.artikelItems" :key="artikel.kassenprojektID + '-' + artikel.desktopID + '-' + artikel.Id" :item="artikel" @addItem="this.addArtikel" v-show="artikel.sichtbarkeit" :darkMode="this.darkMode"/>
         </div>
 
         <!-- Horizontaler Griff -->
@@ -63,7 +63,7 @@
           ref="bottomBar"
           v-if="this.pfandItems != undefined && this.pfandItems.length > 0" 
         >
-          <Item class="pfandItem" :type="'Pfand'" v-for="pfand in this.pfandItems" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" @addItem="this.addPfand" v-show="this.getItemVisible(pfand, 'pfand')" :darkMode="this.darkMode"/>
+          <Item class="pfandItem" :type="'Pfand'" v-for="pfand in this.pfandItems" :key="pfand.kassenprojektID + '-' + pfand.desktopID + '-' + pfand.Id" :item="pfand" @addItem="this.addPfand" v-show="pfand.sichtbarkeit" :darkMode="this.darkMode"/>
         </div>
       </section>
 
@@ -212,7 +212,9 @@ export default {
       headerHeight: 0,
       darkMode: this.darkModeDefault,
       desktopSwitchActive: false,
-      rechnerActive: false
+      rechnerActive: false,
+
+      bargeldActive: false
     };
   },
   computed: {
@@ -868,9 +870,9 @@ export default {
     },
     async bargeld(){
       const emailData = {
-          to: 'sebastianpfuelb@gmail.com',
+          to: 'kassier@ffw-poppenhausen.de',
           subject: 'Wechselgeld auffüllen: ' + this.$props.selectedDesktop.name,
-          text: 'Wechselgeld bei Kasse ' + this.$props.selectedDesktop.name + ' muss aufgefüllt werden.'
+          text: 'Wechselgeld bei Kasse: ' + this.$props.selectedDesktop.name + ' muss aufgefüllt werden.'
       };
 
       try {
@@ -915,6 +917,10 @@ export default {
         });
     };
     this.getDesktops();
+
+    if(localStorage.getItem('konvKey') == 'dafsjokj274' || localStorage.getItem('konvKey') == 'U2FsdGVkX1867k9DRE7eQ+27VEzN0fGtSxR6A8VVXMvARueP3JWpqKOFjwu9ZKtbqyfVhwnBmqVT8n+lHQBiLtrFO82Ybt5Qs9TZ8DK7L9kDkBxz0vyJVLRWhGzI49WO'){
+      this.bargeldActive = true;
+    }
   },
   mounted(){
     const showTotalEl = document.getElementById("showTotal");

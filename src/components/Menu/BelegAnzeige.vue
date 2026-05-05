@@ -259,7 +259,7 @@ export default {
             this.belege = await Beleg.getLocal(this.$props.selectedKassenprojekt.Id);
         }
         this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
-        this.belege = this.belege.sort((a, b) => b.time - a.time);
+        this.belege = this.belege.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
     }
   },
   created() {
@@ -267,7 +267,7 @@ export default {
         this.getBelege();
         this.belege = JSON.parse(this.$store.state.kasse.belegItems);
         this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
-        this.belege = this.belege.sort((a, b) => b.time - a.time);
+        this.belege = this.belege.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
         console.log(this.belege)
     } catch(err){
         this.belege = [];

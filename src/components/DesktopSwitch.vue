@@ -4,7 +4,7 @@
     :class="active ? 'switchActive' : 'switchDeactive'"
     :style="cssVars"
   >
-    <ul class="desktopList">
+    <ul class="desktopList" ref="list">
       <li v-for="item in desktops" :key="item.id" @click="this.switchDesktop(item)">
         {{ kassenprojekt.name }} - {{ item.name }}
       </li>
@@ -23,20 +23,39 @@ export default {
   },
   data() {
     return {
-
+      listHeight: 0,
     };
+  },
+  watch: {
+    desktops: {
+      handler() {
+        this.$nextTick(()=>{
+          this.updateHeight();
+        })
+      },
+      deep: true
+    }
   },
   computed: {
     cssVars() {
       return {
         '--headerHeight': `${this.headerHeight}px`,
+        '--listHeight': `${this.listHeight}px`,
       };
     },
   },
   methods: {
     switchDesktop(item){
       this.$emit('switchDesktop', item)
+    },
+    updateHeight() {
+      if (this.$refs.list) {
+        this.listHeight = this.$refs.list.offsetHeight;
+      }
     }
+  },
+  async created(){
+    
   }
 };
 </script>
@@ -45,7 +64,7 @@ export default {
 .desktopSwitchContainer {
   z-index: 10;
   position: fixed;
-  top: var(--headerHeight);
+  //top: var(--headerHeight);
   left: 30px;
   background-color: var(--header);
   overflow: hidden;
@@ -59,7 +78,8 @@ export default {
   top: var(--headerHeight);
 }
 .switchDeactive {
-  top: -150px;
+  //top: -150px;
+  top: calc(-1 * var(--listHeight));
   /*opacity: 0;*/
 }
 

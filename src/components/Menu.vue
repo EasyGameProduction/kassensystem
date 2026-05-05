@@ -47,10 +47,10 @@
           <span class="navLabel">Belege</span>
         </button>
 
-        <!--<button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true; belege = false">
+        <button class="navItem" :class="weitere?'navItem-active':''" @click="anzeige = false; daten = false; admin = false; weitere = true; belege = false">
           <span class="navIcon">⚙️</span>
           <span class="navLabel">Erweiterte Einstellungen</span>
-        </button>-->
+        </button>
       </nav>
     </aside>
 
@@ -84,8 +84,8 @@
                     v-model="item.bezeichnung"
                      @blur="this.updateArtikel(item)"
                 />
-                <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Sichtbar" v-if="artikelItemsSichtbarkeit.find(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf06e;</span>
-                <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Unsichtbar" v-if="!artikelItemsSichtbarkeit.find(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
+                <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Sichtbar" v-if="item.sichtbarkeit">&#xf06e;</span>
+                <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Unsichtbar" v-if="!item.sichtbarkeit">&#xf070;</span>
               </div>
 
               <label :for="'preis-'+item.id">Preis (€): </label>
@@ -133,8 +133,8 @@
                     v-model="item.bezeichnung"
                     @blur="this.updatePfand(item)"
                 />
-                <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Sichtbar" v-if="pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf06e;</span>
-                <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Unsichtbar" v-if="!pfandItemsSichtbarkeit.find(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID).sichtbar">&#xf070;</span>
+                <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Sichtbar" v-if="item.sichtbarkeit">&#xf06e;</span>
+                <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Unsichtbar" v-if="!item.sichtbarkeit">&#xf070;</span>
               </div>
 
               <label :for="'preis-'+item.Id">Preis (€): </label>
@@ -243,12 +243,13 @@
         <h1>Belege</h1>
         <div class="anzeigeTitle">
           <h2>{{ selectedKassenprojekt.name }} - {{ selectedDesktop.name }}:</h2>
-          <button @click="this.belegeLoeschen()">Löschen</button>
+          <button v-if="false" @click="this.belegeLoeschen()">Löschen</button>
         </div>
         <BelegAnzeige :artikelItems="this.artikelItems" :pfandItems="this.pfandItems" :selectedKassenprojekt="this.$props.selectedKassenprojekt" :selectedDesktop="this.$props.selectedDesktop" :style="cssVars" :selectedBeleg="this.selectedBeleg" @clearSelectedBeleg="this.selectedBeleg = {}"/>
       </div>
       <div id="weitere" class="contentContainer" v-if="weitere">
         <h1>Erweiterte Einstellungen</h1>
+          
       </div>
     </main>
   </div>
@@ -351,9 +352,14 @@ export default {
       this.$emit('setPfandItems', this.pfandItems);
     },
     switchSichtbarkeitArtikel(item){
+      item.sichtbarkeit = !item.sichtbarkeit;
+      this.updateArtikel(item);
+      console.log(item);
       this.$emit('setArtikelSichtbarkeit', item);
     },
     switchSichtbarkeitPfand(item){
+      item.sichtbarkeit = !item.sichtbarkeit;
+      this.updatePfand(item);
       this.$emit('setPfandSichtbarkeit', item);
     },
     addArtikel(){

@@ -139,6 +139,8 @@ export default {
       this.$emit('changePassword', kassenprojekt);
     },
     async inviteUser(kassenprojekt){
+      Swal.fire("Comming soon");
+      return;
       let text="http://localhost:8080/:asfidhpaiosfhidfas3476"
 
       this.createInvitePopup(text, kassenprojekt);
