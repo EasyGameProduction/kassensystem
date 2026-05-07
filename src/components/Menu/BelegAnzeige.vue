@@ -1,14 +1,18 @@
 <template>
-    <div class="belegItem" v-for="beleg in this.belege" :key="beleg.time" :style="cssVars" :id="'time'+beleg.time">
-        <div class="headerLine" @click="beleg.open = !beleg.open">
+    <div class="belegItem" v-for="beleg in this.belege" :key="beleg.time" :style="cssVars" :id="'time'+this.convertTimeId(beleg.time)">
+        <div :class="['headerLine',
+                    belegStorniert(beleg) ? 'stornoObject' : '',
+        ]" @click="beleg.open = !beleg.open; this.activeBeleg = false;">
             <h2 class="belegDatum">{{ this.convertDate(beleg.time) }} - {{ this.convertTime(beleg.time) }}</h2>
-            <h3 class="helferFrei" v-if="beleg.helferFrei == true">Helfer frei</h3>
+            <h3 class="helferFrei" v-if="beleg.helferFrei == true && this.storno !== true">Helfer frei</h3>
+            <h3 class="storno" v-if="beleg.storno == true">Storno</h3>
+            <h3 class="stornoObject" v-if="belegStorniert(beleg)">storniert</h3>
             <div class="rechteSchrift">
                 <h2 class="Gesamt">{{ this.convertBetrag(beleg.rechnungsbetrag) }} €</h2>
                 <!--<button @click.stop="this.deleteBeleg(beleg)" class="btn btn-danger trash">🗑</button>-->
             </div>
         </div>
-        <div class="bottom" v-if="beleg.open || this.checkBeleg(beleg)">
+        <div class="bottom" v-if="beleg.open || this.checkBeleg(beleg) || beleg.time == this.activeBeleg.time">
             <h3 v-if="beleg.artikelAuswahl.length > 0">Artikel:</h3>
             <div v-if="beleg.artikelAuswahl.length > 0" class="bezeichnungen">
                 <div class="bezeichnung">
@@ -109,6 +113,7 @@ export default {
   data() {
     return {
       belege: [],
+      activeBeleg: {},
       open: false
     };
   },
@@ -136,12 +141,13 @@ export default {
         if(beleg.time == this.$props.selectedBeleg.time){
             this.$emit('clearSelectedBeleg');
             beleg.open = true;
-
+            this.activeBeleg = beleg;
 
             this.$nextTick(() => {
                 // sichere Id-Zusammensetzung (falls beleg.time Sonderzeichen enthalten könnte)
-                const safeId = 'time' + String(beleg.time).replace(/[^a-zA-Z0-9\-_:.]/g, '');
+                const safeId = 'time' + String(beleg.time).replace(/[^0-9]/g, "");
                 const div = document.getElementById(safeId);
+                console.log('Versuche, zu scrollen zu:', safeId, div);
                 if (div && typeof div.scrollIntoView === 'function') {
                     try {
                         div.scrollIntoView({
@@ -179,6 +185,9 @@ export default {
             second: '2-digit'
         });
         return time;
+    },
+    convertTimeId(timestamp){
+        return String(timestamp).replace(/[^0-9]/g, "");
     },
     convertBetrag(betrag){
         try{
@@ -260,6 +269,18 @@ export default {
         }
         this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
         this.belege = this.belege.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    },
+    belegStorniert(beleg){
+        try{
+            let index = this.belege.findIndex(obj=>obj == beleg);
+            if(this.belege[index - 1].storno){
+                return true;
+            } else{
+                return false;
+            }
+        } catch(err){
+            return false;
+        }
     }
   },
   created() {
@@ -302,6 +323,14 @@ export default {
 
 .helferFrei{
     color: green;
+}
+
+.storno{
+    color: green;
+}
+
+.stornoObject{
+    color: red;
 }
 
 .rechteSchrift{

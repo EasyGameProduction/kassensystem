@@ -1,13 +1,13 @@
 <template>
     <div v-if="this.$props.darkMode">
-        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg" :selectedDesktop="this.$props.selectedDesktop"/>
+        <SplineChart :belegItems="this.getBelegeOhneStorno()":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg" :selectedDesktop="this.$props.selectedDesktop"/>
         <br>
         <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
         <br>
         <ColumnChartPfand :dataAPI="this.fehlenderPfand" :gesamt="this.getGesamtPfand()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>  
     </div>
     <div v-if="!this.$props.darkMode">
-        <SplineChart :belegItems="this.belegItems":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg" :selectedDesktop="this.$props.selectedDesktop"/>
+        <SplineChart :belegItems="this.getBelegeOhneStorno()":style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars" @openBeleg="this.openBeleg" :selectedDesktop="this.$props.selectedDesktop"/>
         <br>
         <ColumnChart :dataAPI="this.verkaufteArtikel" :gesamt="this.getGesamt()" :style="cssVars" :darkMode="this.$props.darkMode" :cssVars="cssVars"/>
         <br>
@@ -81,8 +81,14 @@ export default {
                     if(this.verkaufteArtikel[index].anzahlVerkauft == undefined || this.verkaufteArtikel[index].anzahlVerkauft == false){
                         this.verkaufteArtikel[index].anzahlVerkauft = 0;
                     }
-                    this.verkaufteArtikel[index].anzahlVerkauft+= bel.anzahl;
-                    this.gesamt += bel.anzahl * this.verkaufteArtikel[index].preis;
+                    
+                    if(beleg.storno != true){
+                        this.verkaufteArtikel[index].anzahlVerkauft+= bel.anzahl;
+                        this.gesamt += bel.anzahl * this.verkaufteArtikel[index].preis;
+                    } else{
+                        this.verkaufteArtikel[index].anzahlVerkauft-= bel.anzahl;
+                        this.gesamt -= bel.anzahl * this.verkaufteArtikel[index].preis;
+                    }
 
                     if(this.verkaufteArtikel[index].pfandId >= 0){
                         let index2 = this.verkaufterPfand.findIndex(pfand => pfand.kassenprojektID == this.$props.selectedKassenprojekt.Id && pfand.desktopID == this.$props.selectedDesktop.Id && pfand.Id == bel.pfandId);
@@ -90,7 +96,12 @@ export default {
                             if(this.verkaufterPfand[index2].anzahl == undefined || this.verkaufterPfand[index2].anzahl == false){
                                 this.verkaufterPfand[index2].anzahl = 0;
                             }
-                            this.verkaufterPfand[index2].anzahl += bel.anzahl;
+                            if(beleg.storno != true){
+                                this.verkaufterPfand[index2].anzahl += bel.anzahl;
+                            } else{
+                                this.verkaufterPfand[index2].anzahl -= bel.anzahl;
+                            }
+                            //this.verkaufterPfand[index2].anzahl += bel.anzahl;
                         }
                     }
                 }
@@ -152,6 +163,23 @@ export default {
         } catch(err){
             this.belegItems = [];
         }
+    },
+    getBelegeOhneStorno(){
+        let belege = this.belegItems;
+        let index = belege.length - 1;
+        while(index >= 0){
+            try{
+                if(belege[index].storno){
+                    belege.splice(index-1, 2);
+                }
+                index--;
+            } catch(err){
+                index--;
+            }
+        }
+        console.log("Belege ohne Storno:");
+        console.log(belege);
+        return belege;
     }
   },
   created(){

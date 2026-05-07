@@ -346,7 +346,14 @@ export default {
       this.collapsed = !this.collapsed;
     },
     onDragEnd(evt) {
-      this.$emit('setArticleItems', this.artikelItems);
+      //this.$emit('setArticleItems', this.artikelItems);
+      let index = 1;
+      this.artikelItems.forEach(item=>{
+        item.reihenfolge = index;
+        index++;
+        this.updateArtikel(item);
+      })
+      console.log(this.artikelItems);
     },
     onDragEndPfand(evt) {
       this.$emit('setPfandItems', this.pfandItems);
@@ -427,6 +434,7 @@ export default {
           item.color = undefined;
         }
       }
+      this.updateArtikel(item);
     },
     exportData(data, name){
       let array = Array.isArray(data) ? data : JSON.parse(data);

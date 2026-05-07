@@ -24,6 +24,7 @@ export class Artikel{
             }
             store.commit('kasse/SET_ARTIKEL_ITEMS',JSON.stringify(data));
             store.commit('kasse/SET_ONLINE', true);
+            data.sort((a, b) => a.reihenfolge - b.reihenfolge);
             return data;
         } catch(err){
             store.commit('kasse/SET_ONLINE', false);
@@ -39,6 +40,7 @@ export class Artikel{
                 data = data.filter(obj=>obj.kassenprojektID == kassenprojektId && obj.desktopID == desktopId);
             }
         }
+        data.sort((a, b) => a.reihenfolge - b.reihenfolge);
         console.log(data);
         return data;
     }
@@ -157,7 +159,7 @@ export class Artikel{
             const response = await axios.put(
                 `${Settings.url}/updateArtikel`, artikelItem
             );
-
+            console.log(artikelItem);
             store.commit('kasse/SET_ONLINE', true);
             return true;
         } catch(err){

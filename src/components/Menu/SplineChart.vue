@@ -135,7 +135,12 @@ export default {
         },
         tooltip: {
             formatter() {
-                return `<b>${Highcharts.dateFormat('%d.%m.%Y %H:%M', this.x)}</b><br>Konto: ${this.y.toFixed(2)} €`;
+                let time = new Date(this.x).toLocaleTimeString('de-DE', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                return `<b>${time}</b><br>Konto: ${this.y.toFixed(2)} €`;
             }
         },
         series: [
@@ -155,7 +160,10 @@ export default {
       };
     },
     onPointClick(obj){
-        this.$emit('openBeleg',this.$props.belegItems.find(o=>o.time == obj.x));
+        console.log(obj.x);
+        console.log(this.$props.belegItems);
+        let time = new Date(obj.x).toISOString();
+        this.$emit('openBeleg',this.$props.belegItems.find(o=>o.time == time));
     },
 
     processSplineData() {

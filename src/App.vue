@@ -321,6 +321,11 @@ export default {
 
           try{
             const response = await Benutzer.get(formValues.email, formValues.password);
+            if(response == null || response.konvKey == null){
+              await Swal.fire('Fehlgeschlagen', 'Die Anmeldung ist fehlgeschlagen', 'error');
+              this.loginPopup();
+              return;
+            }
             Swal.fire('Hallo ' + response.vorname, 'Sie haben sich erfolgreich angemeldet', 'success')
             localStorage.setItem("konvKey", response.konvKey);
             this.konvKey = response.konvKey;

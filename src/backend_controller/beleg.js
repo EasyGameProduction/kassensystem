@@ -29,6 +29,7 @@ export class Beleg{
             console.log(data);
             store.commit('kasse/SET_BELEG_ITEMS', JSON.stringify(data))
             store.commit('kasse/SET_ONLINE', true);
+            this.addFromUpdateZeiger();
             return data;
         } catch(err){
             store.commit('kasse/SET_ONLINE', false);
@@ -67,6 +68,7 @@ export class Beleg{
 
             store.commit('kasse/SET_BELEG_ITEMS',JSON.stringify(belegItems));
             store.commit('kasse/SET_ONLINE', true);
+            this.addFromUpdateZeiger();
             return true;
         } catch(err){
             store.commit('kasse/SET_ONLINE', false);
@@ -79,7 +81,7 @@ export class Beleg{
             updateZeiger = new Array();
         }
         updateZeiger.push({
-            obj: 'A',
+            obj: 'B',
             modKz: 'I',
             data: belegItem
         })
@@ -92,6 +94,26 @@ export class Beleg{
         belegItems.push(belegItem);
 
         store.commit('kasse/SET_BELEG_ITEMS',JSON.stringify(belegItems));
+    }
+
+    static async addFromUpdateZeiger(){
+        let updateZeiger = JSON.parse(store.state.kasse.updateZeiger);
+        if(updateZeiger == false || updateZeiger == undefined || updateZeiger == '' || !updateZeiger){
+            updateZeiger = new Array();
+            return;
+        }
+        updateZeiger = updateZeiger.filter(obj=>obj.obj == 'B' && obj.modKz == 'I');
+        if(updateZeiger.length == 0){
+            return;
+        }
+        updateZeiger.forEach(async obj => {
+            let result = await this.add(obj.data);
+            if(result == true){
+                let updateZeiger = JSON.parse(store.state.kasse.updateZeiger);
+                updateZeiger = updateZeiger.filter(obj2=>!(obj2.obj == 'B' && obj2.modKz == 'I' && obj2.data.time == obj.data.time && obj2.data.kassenprojektID == obj.data.kassenprojektID && obj2.data.desktopID == obj.data.desktopID));
+                store.commit('kasse/SET_UPDATE_ZEIGER',JSON.stringify(updateZeiger));
+            }
+        });
     }
 
     static async delete(belegItem){
@@ -116,7 +138,7 @@ export class Beleg{
             updateZeiger = new Array();
         }
         updateZeiger.push({
-            obj: 'A',
+            obj: 'B',
             modKz: 'D',
             data: belegItem
         })

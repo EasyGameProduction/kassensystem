@@ -340,7 +340,8 @@ export default {
         let newArtikel = {
           Id: artikel.Id,
           anzahl: 1,
-          pfandId: artikel.pfandId
+          pfandId: artikel.pfandId,
+          reihenfolge: this.artikelItems[this.artikelItems.length - 1].reihenfolge + 1
         }
         this.artikelAuswahl.push(newArtikel);
       }
@@ -424,14 +425,27 @@ export default {
       if(!this.menuActive){
         this.setArticleItems(this.artikelItems);
         this.setPfandItems(this.pfandItems);
+      } else{
+        this.getArtikel();
+        this.getPfand();
+        this.getBelege();
       }
+    },
+    async getBelege(){
+        try{
+            this.belege = await Beleg.get(this.$props.selectedKassenprojekt.Id);
+        } catch(err){
+            this.belege = await Beleg.getLocal(this.$props.selectedKassenprojekt.Id);
+        }
+        this.belege = this.belege.filter(obj=>obj.kassenprojektID == this.$props.selectedKassenprojekt.Id && obj.desktopID == this.$props.selectedDesktop.Id);
+        this.belege = this.belege.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
     },
     openDesktopSwitch(){
       this.desktopSwitchActive = !this.desktopSwitchActive;
       this.headerHeight = document.getElementById('topbar').getBoundingClientRect().height;
       console.log(this.headerHeight);
     },
-    bestaetigen(helferFrei){
+    bestaetigen(helferFrei, storno){
       let artikelAuswahl = this.artikelAuswahl;
       let pfandAuswahl = this.pfandAuswahl;
       let rechnungsbetrag = this.rechnungsbetrag;
@@ -442,6 +456,11 @@ export default {
         rechnungsbetrag: rechnungsbetrag
       }
 
+      if(storno){
+        rechnungsbetrag = -rechnungsbetrag;
+        console.log(this.rechnungsbetrag);
+      }
+
       var neuerBeleg = {
         time: new Date(),
         kasse: this.$props.selectedKasse.Id,
@@ -450,8 +469,10 @@ export default {
         artikelAuswahl: artikelAuswahl,
         pfandAuswahl: pfandAuswahl,
         rechnungsbetrag: rechnungsbetrag,
-        helferFrei: helferFrei
+        helferFrei: helferFrei,
+        storno: storno
       }
+      console.log(neuerBeleg);
 
       /*try{
         let belege = JSON.parse(this.$store.state.kasse.belegItems);
@@ -491,9 +512,11 @@ export default {
       if(artikel != undefined){
         try{
           await Artikel.update(artikel)
+          
         } catch(err){
           Artikel.updateLocal(artikel)
         }
+        this.getArtikel();
       }
     },
     async deleteArtikelItem(artikel){
@@ -572,18 +595,18 @@ export default {
       this.pfandItems = pfandItems;*/
     },
     setArtikelSichtbarkeit(item){
-      let index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
+      /*let index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.artikelId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
       if(index >= 0){
         this.artikelItemsSichtbarkeit[index].sichtbar = !this.artikelItemsSichtbarkeit[index].sichtbar;
       }
-      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
+      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));*/
     },
     setPfandSichtbarkeit(item){
-      let index = this.pfandItemsSichtbarkeit.findIndex(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
+      /*let index = this.pfandItemsSichtbarkeit.findIndex(obj=>obj.pfandId == item.Id && obj.desktopID == item.desktopID && obj.kassenprojektID == item.kassenprojektID);
       if(index >= 0){
         this.pfandItemsSichtbarkeit[index].sichtbar = !this.pfandItemsSichtbarkeit[index].sichtbar;
       }
-      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));*/
     },
     addArtikelItem(artikelDefault){
       let newId;
@@ -815,7 +838,9 @@ export default {
             confirmButtonColor: `var(--swal2-deny-button-background-color)`
           }).then((result)=>{
             if(result.isConfirmed){
-              belege.splice(index, 1);
+              this.bestaetigen(stornoBeleg.helferFrei, true);
+              console.log(stornoBeleg);
+              //belege.splice(index, 1);
               
               Swal.fire({
                 title: "Rechnung storniert",
@@ -896,6 +921,11 @@ export default {
             })
           }
       } catch (error) {
+          Swal.fire({
+            title: "Fehler",
+            text: "Benachrichtigung konnte nicht gesendet werden.",
+            icon: "error"
+          })
           console.error('Error in sendEmail:', error);
       }
     }
