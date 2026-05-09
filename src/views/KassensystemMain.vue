@@ -623,7 +623,9 @@ export default {
         desktopID: this.$props.selectedDesktop.Id,
         bezeichnung : undefined,
         preis: undefined,
-        pfandId: undefined
+        pfandId: undefined,
+        reihenfolge: this.artikelItems[this.artikelItems.length - 1].reihenfolge + 1,
+        sichtbarkeit: true
       }
 
       if(artikelDefault != undefined && artikelDefault != null){
