@@ -705,9 +705,9 @@ export default {
       let index = this.artikelItems.findIndex(obj=>obj.Id == item.Id && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
       this.artikelItems.splice(index, 1);
 
-      index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.Id == item.artikelId && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
+      /*index = this.artikelItemsSichtbarkeit.findIndex(obj=>obj.Id == item.artikelId && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
       this.artikelItemsSichtbarkeit.splice(index, 1);
-      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));
+      this.$store.commit('kasse/SET_ARTIKEL_ITEMS_SICHTBARKEIT',JSON.stringify(this.artikelItemsSichtbarkeit));*/
 
       this.deleteArtikelItem(item);
       //this.setArticleItems(this.artikelItems);
@@ -734,9 +734,9 @@ export default {
 
       this.pfandItems.splice(index, 1);
 
-      index = this.pfandItemsSichtbarkeit.findIndex(obj=>obj.Id == item.pfandId && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
+      /*index = this.pfandItemsSichtbarkeit.findIndex(obj=>obj.Id == item.pfandId && obj.kassenprojektID == item.kassenprojektID && obj.desktopID == item.desktopID);
       this.pfandItemsSichtbarkeit.splice(index, 1);
-      this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));
+      this.$store.commit('kasse/SET_PFAND_ITEMS_SICHTBARKEIT',JSON.stringify(this.pfandItemsSichtbarkeit));*/
 
       this.deletePfandItem(item);
       //this.setPfandItems(this.pfandItems);
