@@ -564,6 +564,9 @@ export default {
           this.$emit('clearArtikelSichtbarkeit');
           this.$emit('setArtikelItems', []);
           this.artikelItems.forEach(obj=>{
+            if(obj.pfandId == "null"){
+              obj.pfandId = null;
+            }
             this.$emit('addArtikel', obj)
           })
         } else if(typ == 'pfand'){
