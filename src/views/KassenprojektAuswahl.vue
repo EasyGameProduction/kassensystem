@@ -26,7 +26,7 @@
     </header>
 
     <main class="workspace" role="list" aria-label="Kassenprojekte">
-      <AuswahlItem v-for="kassenItem in kassenprojekte" role="button" tabindex="0" :key="kassenItem.Id" @click="$emit('selectKassenprojekt', kassenItem)" @keydown.enter="$emit('selectKassenprojekt', kassenItem)" :item="kassenItem" @delete="this.delete(kassenItem)" @changeName="this.changeName" @changePassword="this.changePassword" @inviteUser="this.inviteUser" :darkMode="this.darkMode" :type="'K'"/>
+      <AuswahlItem v-for="kassenItem in kassenprojekte" role="button" tabindex="0" :key="kassenItem.Id" @click="$emit('selectKassenprojekt', kassenItem)" @keydown.enter="$emit('selectKassenprojekt', kassenItem)" :item="kassenItem" @delete="this.delete(kassenItem)" @changeName="this.changeName" @changePassword="this.changePassword" @closeProject="this.closeProject" @inviteUser="this.inviteUser" :darkMode="this.darkMode" :type="'K'"/>
       <div class="addItem" @click="this.addKassenprojekt()">
         <button class="add">+</button>
       </div>
@@ -144,6 +144,10 @@ export default {
       let text="http://localhost:8080/:asfidhpaiosfhidfas3476"
 
       this.createInvitePopup(text, kassenprojekt);
+    },
+    async closeProject(kassenprojekt){
+      kassenprojekt.closed = true;
+      this.$emit('updateKassenprojekt', kassenprojekt);
     },
     async createInvitePopup(text, kassenprojekt){
       Swal.fire({

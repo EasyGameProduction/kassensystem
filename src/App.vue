@@ -1,6 +1,6 @@
 <template>
   <div :style="cssVars" id="mainApp">
-    <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword"/>
+    <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword" @updateKassenprojekt="this.updateKassenprojekt"/>
     <DesktopAuswahl v-if="this.desktopAuswahl" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
     <KassensystemMain v-if="this.kassensystemMain" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @selectDesktop="this.selectDesktop"/>
     <button class="backButton fa" @click="this.goBack()">&#xf015</button>
@@ -215,7 +215,8 @@ export default {
         name: obj.name,
         password: obj.password,
         image: obj.image,
-        benutzerKonvKey: obj.benutzerKonvKey
+        benutzerKonvKey: obj.benutzerKonvKey,
+        closed: false,
       }
       console.log(newObj);
       /*this.kassenprojekte.push(newObj);
@@ -252,6 +253,15 @@ export default {
       /*let index = this.kassenprojekte.findIndex(o=>o.Id == obj.Id);
       this.kassenprojekte[index].password = obj.password;
       this.$store.commit('kasse/SET_KASSENPROJEKT_ITEMS',JSON.stringify(this.kassenprojekte));*/
+      try{
+        await Kassenprojekt.update(obj)
+      } catch(err){
+        Kassenprojekt.updateLocal(obj)
+      }
+      this.getKassenprojekte();
+    },
+    async updateKassenprojekt(obj){
+      console.log("updateKassenprojekt", obj);
       try{
         await Kassenprojekt.update(obj)
       } catch(err){

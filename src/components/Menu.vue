@@ -57,7 +57,7 @@
     <main class="rightContainer" role="main">
       <div id="daten" class="contentContainer" v-if="daten">
         <h1>Daten</h1>
-        <div class="datenHeader"><h2>Artikel:</h2><div><button class="plusButton" @click="this.addArtikel()">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📥</button><button class="importButton" @click="this.importWithSwal('artikel')">📤</button></div></div>
+        <div class="datenHeader"><h2>Artikel:</h2><div><button class="plusButton" @click="this.addArtikel()" :disabled="this.$props.selectedKassenprojekt.closed">+</button><button class="exportButton" @click="this.exportData(artikel, 'artikel')">📥</button><button class="importButton" @click="this.importWithSwal('artikel')" :disabled="this.$props.selectedKassenprojekt.closed">📤</button></div></div>
 
         <!-- draggable wrapper: v-model linked to items -->
         <draggable
@@ -68,11 +68,12 @@
           chosen-class="drag-chosen"
           handle=".dragHandle"
           @end="onDragEnd"
+          :disabled="this.$props.selectedKassenprojekt.closed"
         >
           <template #item="{ element: item, index }">
             <div class="itemContainer" :data-id="item.id" >
               <div class="itemHeader">
-                <button class="loeschen" @click="this.deleteArtikel(item)">🗑</button>
+                <button class="loeschen" @click="this.deleteArtikel(item)" :disabled="this.$props.selectedKassenprojekt.closed">🗑</button>
                 <button class="colorWheel" @click="this.openColorPicker(item)"><div class="dot"  :style="'background-color: ' + ((darkMode)?item.bgcolor:item.color)"></div></button>
 
                 <span class="dragHandle" title="Ziehen">⠿</span>
@@ -83,6 +84,7 @@
                     type="text"
                     v-model="item.bezeichnung"
                      @blur="this.updateArtikel(item)"
+                     :disabled="this.$props.selectedKassenprojekt.closed"
                 />
                 <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Sichtbar" v-if="item.sichtbarkeit">&#xf06e;</span>
                 <span class="itemButton fa" @click="switchSichtbarkeitArtikel(item)" title="Unsichtbar" v-if="!item.sichtbarkeit">&#xf070;</span>
@@ -98,17 +100,18 @@
                 max="999.99"
                 v-model.number="item.preis"
                  @blur="this.updateArtikel(item)"
+                  :disabled="this.$props.selectedKassenprojekt.closed"
               />
 
               <label :for="'pfand-'+item.id">Pfand: </label>
-              <select :id="'pfand-'+item.pfandId" v-model="item.pfandId"  @blur="this.updateArtikel(item)">
+              <select :id="'pfand-'+item.pfandId" v-model="item.pfandId"  @blur="this.updateArtikel(item)" :disabled="this.$props.selectedKassenprojekt.closed">
                 <option v-for="pfand in this.pfandItems" :key="pfand.Id" :value="pfand.Id">{{ pfand.bezeichnung }}</option>
               </select>
             </div>
           </template>
         </draggable>
         <br/>
-        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')">📤</button></div></div>
+        <div class="datenHeader"><h2>Pfand:</h2><div><button class="plusButton" @click="this.addPfand()" :disabled="this.$props.selectedKassenprojekt.closed">+</button><button class="exportButton" @click="this.exportData(pfand, 'pfand')">📥</button><button class="importButton" @click="this.importWithSwal('pfand')" :disabled="this.$props.selectedKassenprojekt.closed">📤</button></div></div>
         <draggable
           v-model="pfandItems"
           item-key="Id"
@@ -117,11 +120,12 @@
           chosen-class="drag-chosen"
           handle=".dragHandle"
           @end="onDragEndPfand"
+           :disabled="this.$props.selectedKassenprojekt.closed"
         >
           <template #item="{ element: item, index }">
             <div class="itemContainer" :data-id="item.Id" >
               <div class="itemHeader">
-                <button class="loeschen" @click="this.deletePfand(item)">🗑</button>
+                <button class="loeschen" @click="this.deletePfand(item)" :disabled="this.$props.selectedKassenprojekt.closed">🗑</button>
                 <button class="colorWheel" @click="this.openColorPicker(item)"><div class="dot"  :style="'background-color: ' + ((darkMode)?item.bgcolor:item.color)"></div></button>
 
                 <span class="dragHandle" title="Ziehen">⠿</span>
@@ -132,6 +136,7 @@
                     type="text"
                     v-model="item.bezeichnung"
                     @blur="this.updatePfand(item)"
+                     :disabled="this.$props.selectedKassenprojekt.closed"
                 />
                 <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Sichtbar" v-if="item.sichtbarkeit">&#xf06e;</span>
                 <span class="itemButton fa" @click="switchSichtbarkeitPfand(item)" title="Unsichtbar" v-if="!item.sichtbarkeit">&#xf070;</span>
@@ -147,6 +152,7 @@
                 max="999.99"
                 v-model.number="item.preis"
                 @blur="this.updatePfand(item)"
+                 :disabled="this.$props.selectedKassenprojekt.closed"
               />
             </div>
           </template>

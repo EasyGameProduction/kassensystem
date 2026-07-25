@@ -105,18 +105,18 @@
             <div class="actions">
               <div>
                 <button @click="removeWAll" class="btn btn-danger"><span class="btn-text">Löschen</span></button>
-                <button @click="bestaetigen(false)" class="btn btn-primary btn-bestaetigen"><span class="btn-text">Bestätigen</span></button>
+                <button @click="bestaetigen(false)" :disabled="this.$props.selectedKassenprojekt.closed" class="btn btn-primary btn-bestaetigen"><span class="btn-text">Bestätigen</span></button>
               </div>
             </div>
           </div>
           <div id="zusatzButtons" class="actions">
               <div>
                 <button @click="this.rechnerActive = !this.rechnerActive" class="btn btn-default"><span class="btn-text">Rechner</span></button>
-                <button @click="bestaetigen(true)" class="btn btn-success"><span class="btn-text">Helfer frei</span></button>
+                <button @click="bestaetigen(true)" :disabled="this.$props.selectedKassenprojekt.closed" class="btn btn-success"><span class="btn-text">Helfer frei</span></button>
               </div>
               <div>
                 <button @click="this.showLetzteBestellung()" class="btn btn-primary"><span class="btn-text">Letzte anzeigen</span></button>
-                <button @click="this.stornoLetzte()" class="btn btn-danger"><span class="btn-text">Storno Letzte</span></button>
+                <button @click="this.stornoLetzte()" :disabled="this.$props.selectedKassenprojekt.closed" class="btn btn-danger"><span class="btn-text">Storno Letzte</span></button>
               </div>
           </div>
         </div>
@@ -972,6 +972,14 @@ export default {
       // MAX_TOTAL_UP = Höhe von zusatzButtons
       this.MAX_TOTAL_UP = zusatzHeight + 10;
       this.MIN_TOTAL_UP = 0;
+    }
+
+    if(this.$props.selectedKassenprojekt.closed == true){
+      Swal.fire({
+        title: "Kassenprojekt geschlossen",
+        text: "Das Kassenprojekt ist geschlossen. Es können keine neuen Belege mehr erstellt werden.",
+        icon: "info"
+      });
     }
   }
 };

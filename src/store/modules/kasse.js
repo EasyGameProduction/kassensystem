@@ -11,7 +11,7 @@ export default {
     desktopItems: false,
     kassenprojektItems: false,
     updateZeiger: false,
-    online: false,
+    online: false
   }),
   mutations: {
     SET_RIGHT_PANEL_WIDTH(state, px) { state.rightPanelWidth = px; },

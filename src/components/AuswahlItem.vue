@@ -5,7 +5,7 @@
       </div>
       <div class="meta">
           <h3 class="name">{{ item.name || item.bezeichnung || 'Projekt' }}</h3>
-          <button class="more" @click.stop="this.more(item)">&hellip;</button>
+          <button class="more" @click.stop="this.more(item)" :disabled="type!== 'K' && this.$props.selectedKassenprojekt.closed">&hellip;</button>
       </div>
 
       <div class="moreContainer" v-if="activeMoreId == item.Id">
@@ -13,6 +13,7 @@
           <div v-if="type=='K'" class="moreItems" @click.stop="this.inviteUser(item)">Benutzer einladen</div>
           <div class="moreItems" @click.stop="this.changeName(item)">Namen ändern</div>
           <div v-if="type!=='K'" class="moreItems" @click.stop="this.changePassword(item)">Passwort ändern</div>
+          <div v-if="type=='K'" class="moreItems" @click.stop="this.closeProject(item)">Projekt schließen</div>
           <div class="moreItems" @click.stop="this.delete(item)">Löschen</div>
       </div>
     </div>
@@ -26,7 +27,8 @@ export default {
   props: {
     item: Object,
     darkMode: Boolean,
-    type: String
+    type: String,
+    selectedKassenprojekt: Object
   },
   data() {
     return {
@@ -122,6 +124,22 @@ export default {
             }
         }
         this.activeMoreId = false;
+    },
+    async closeProject(item){
+      Swal.fire({
+          title: "Projekt schließen?",
+          text: "Das Projekt wird geschlossen und kann nicht mehr bearbeitet werden.",
+          showDenyButton: true,
+          confirmButtonText: "Schließen",
+          confirmButtonColor: 'var(--swal2-deny-button-background-color)',
+          denyButtonText: "Abbrechen",
+          denyButtonColor: 'grey'
+      }).then((result) => {
+          if(result.isConfirmed){
+              this.$emit('closeProject', item);
+          }
+      })
+      this.activeMoreId = false;
     }
   }
 };
