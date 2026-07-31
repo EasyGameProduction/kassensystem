@@ -12,12 +12,33 @@ export class Benutzer{
                 }
             );
 
+            if(response.data == " " || response.data == ""){
+                throw err;
+            }
+
             store.commit('kasse/SET_ONLINE', true);
             console.log(response.data);
             return response.data;
-        } catch(err){
-            store.commit('kasse/SET_ONLINE', false);
-            throw err;
+        } catch (err) {
+            try {
+                const response2 = await axios.get(
+                    `${Settings.url}/getBenutzerBody`,
+                    {
+                        params: {
+                            email,
+                            passwort
+                        },
+                        timeout: 5000
+                    }
+                );
+
+                store.commit("kasse/SET_ONLINE", true);
+                console.log(response2.data);
+                return response2.data;
+            } catch (err2) {
+                store.commit("kasse/SET_ONLINE", false);
+                throw err2;
+            }
         }
     }
 
