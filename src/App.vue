@@ -1,9 +1,7 @@
 <template>
   <div :style="cssVars" id="mainApp">
-    <KassenprojektAuswahl v-if="this.kassenprojektAuswahl" :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword" @updateKassenprojekt="this.updateKassenprojekt"/>
-    <DesktopAuswahl v-if="this.desktopAuswahl" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" @selectDesktop="this.selectDesktop" :darkModeDefault="this.darkMode" @switchDarkmode="this.switchDarkmode" :kassenprojekt="this.selectedKassenprojekt"/>
-    <KassensystemMain v-if="this.kassensystemMain" :online="this.online" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @selectDesktop="this.selectDesktop"/>
-    <button class="backButton fa" @click="this.goBack()">&#xf015</button>
+    <RouterView :online="this.online" :kassenprojekte="kassenprojekte" @selectKassenprojekt="this.selectKassenprojekt" :selectedKassenprojekt="selectedKassenprojekt" :selectedDesktop="selectedDesktop"  @selectDesktop="this.selectDesktop" :selectedKasse="selectedKasse" @switchDarkmode="this.switchDarkmode" :darkModeDefault="this.darkMode" @addKassenprojekt="this.addKassenprojekt" @deleteKassenprojekt="this.deleteKassenprojekt" @changeName="this.changeKassenprojektName" @changePassword="this.changeKassenprojektPassword" @updateKassenprojekt="this.updateKassenprojekt"  :kassenprojekt="this.selectedKassenprojekt" @tryLogin="tryLogin"/>
+    <button v-if="$route.name !== 'login' && $route.name !== 'kassenprojekte'" class="backButton fa" @click="this.goBack()">&#xf015</button>
   </div>
 </template>
 
@@ -14,25 +12,23 @@ import DesktopAuswahl from './views/DesktopAuswahl.vue';
 import KassensystemMain from './views/KassensystemMain.vue';
 import Swal from 'sweetalert2';
 import { Kassenprojekt } from './backend_controller/kassenprojekt';
-import { Settings } from '@/backend_settings';
 import { Benutzer } from './backend_controller/benutzer';
-import CryptopJS from 'crypto-js';
+import LoginScreen from './views/LoginScreen.vue';
+import Datenschutz from './views/Datenschutz.vue';
 
 export default {
   name: 'App',
   components:{
     KassenprojektAuswahl,
     DesktopAuswahl,
-    KassensystemMain
+    KassensystemMain,
+    LoginScreen,
+    Datenschutz
   },
   props: {
   },
   data() {
     return {
-      desktopAuswahl: false,
-      kassenprojektAuswahl: true,
-      kassensystemMain: false,
-
       kassenprojekte:[],
       selectedKassenprojekt:{},
       selectedDesktop:{},
@@ -139,26 +135,13 @@ export default {
         });
       }
     },
-    selectKassenprojekt(kassenprojekt){
-      this.selectedKassenprojekt = kassenprojekt;
+    async selectKassenprojekt(kassenprojekt){
+      /*this.selectedKassenprojekt = kassenprojekt;
       this.desktopAuswahl = true;
       this.kassenprojektAuswahl = false;
       this.kassensystemMain = false;
-    },
-    toKassenprojekt(){
-      this.kassenprojektAuswahl = true;
-      this.desktopAuswahl = false;
-      this.kassensystemMain = false;
-    },
-    toDesktop(){
-      this.desktopAuswahl = true;
-      this.kassenprojektAuswahl = false;
-      this.kassensystemMain = false;
-    },
-    toKassensystemMain(){
-      this.desktopAuswahl = false;
-      this.kassenprojektAuswahl = false;
-      this.kassensystemMain = true;
+      this.goBackButton = true;
+      this.loginScreen = false;*/
     },
     async selectKassenprojekt(kassenprojekt){
       if(kassenprojekt.password != undefined && kassenprojekt.password != ''){
@@ -175,7 +158,12 @@ export default {
         })
       }
       this.selectedKassenprojekt = kassenprojekt;
-      this.toDesktop();
+      await this.$router.push({
+        name: 'desktops',
+        params: {
+          kassenprojektID: kassenprojekt.Id
+        }
+      })
     },
     async selectDesktop(desktop){
       if(desktop.password != undefined && desktop.password != ''){
@@ -192,7 +180,13 @@ export default {
         })
       }
       this.selectedDesktop = desktop;
-      this.toKassensystemMain();
+      await this.$router.push({
+        name: 'main',
+        params: {
+          kassenprojektID: desktop.kassenprojektID,
+          desktopID: desktop.Id
+        }
+      })
     },
     switchDarkmode(mode){
       this.darkMode = mode;
@@ -270,14 +264,7 @@ export default {
       this.getKassenprojekte();
     },
     goBack(){
-      switch (true) {
-        case this.kassensystemMain:
-          this.toDesktop()
-          break;
-        case this.desktopAuswahl:
-          this.toKassenprojekt();
-          break;
-      }
+      this.$router.back();
     },
     async getKassenprojekte(){
       try{
@@ -286,146 +273,42 @@ export default {
         this.kassenprojekte = Kassenprojekt.getLocal()
       }
     },
-    async login(){
-      return new Promise(async (resolve) => {
-        const result = await this.registrierungsPopup();
-        resolve(result);
-      });
-    },
-    async loginPopup(){
-      const { value: formValues } = await Swal.fire({
-          title: "Einloggen",
-          html: `
-              <input id="swal-email" class="swal2-input" placeholder="E-Mail">
-              <input id="swal-password" type="password" class="swal2-input" placeholder="Passwort">
-          `,
-          focusConfirm: false,
-          showCancelButton: false,
-          showDenyButton: true,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          confirmButtonText: "Login",
-          denyButtonText: 'Registrieren',
-          confirmButtonColor: 'blue',
-          denyButtonColor: 'green',
-          preConfirm: () => {
-              const email = document.getElementById("swal-email").value;
-              const password = document.getElementById("swal-password").value;
+    async tryLogin(loginData){
+      try{
+        const response = await Benutzer.get(loginData.email, loginData.password);
+        if(response == null || response.konvKey == null){
+          await Swal.fire('Fehlgeschlagen', 'Die Anmeldung ist fehlgeschlagen', 'error');
+          return;
+        }
+        Swal.fire('Hallo ' + response.vorname, 'Sie haben sich erfolgreich angemeldet', 'success')
+        localStorage.setItem("konvKey", response.konvKey);
+        this.konvKey = response.konvKey;
+        this.getKassenprojekte();
+        await this.$router.push({
+          name: 'kassenprojekte'
+        })
 
-              if (!email || !password) {
-                  Swal.showValidationMessage("Bitte alle Felder ausfüllen");
-                  return false;
-              }
-
-              return { email, password };
-          },
-
-          preDeny: () => {
-            this.registrierungsPopup();
-            return;
-          }
-      });
-
-      if (formValues) {
-          console.log("Einloggen:", formValues);
-
-          try{
-            const response = await Benutzer.get(formValues.email, formValues.password);
-            if(response == null || response.konvKey == null){
-              await Swal.fire('Fehlgeschlagen', 'Die Anmeldung ist fehlgeschlagen', 'error');
-              this.loginPopup();
-              return;
-            }
-            Swal.fire('Hallo ' + response.vorname, 'Sie haben sich erfolgreich angemeldet', 'success')
-            localStorage.setItem("konvKey", response.konvKey);
-            this.konvKey = response.konvKey;
-            this.getKassenprojekte();
-          } catch(err){
-            await Swal.fire('Fehlgeschlagen', 'Die Anmeldung ist fehlgeschlagen', 'error');
-            this.loginPopup();
-          }
+      } catch(err){
+        await Swal.fire('Fehlgeschlagen', 'Die Anmeldung ist fehlgeschlagen', 'error');
       }
-    },
-    async registrierungsPopup(){
-      const { value: formValues } = await Swal.fire({
-          title: "Registrieren",
-          html: `
-              <input id="swal-email" class="swal2-input" placeholder="E-Mail">
-              <input id="swal-password" type="password" class="swal2-input" placeholder="Passwort">
-              <input id="swal-firstname" class="swal2-input" placeholder="Vorname">
-              <input id="swal-lastname" class="swal2-input" placeholder="Nachname">
-          `,
-          focusConfirm: false,
-          showCancelButton: false,
-          showDenyButton: true,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          confirmButtonText: "Registrieren",
-          denyButtonText: 'Zum Login',
-          confirmButtonColor: 'green',
-          denyButtonColor: 'blue',
-          preConfirm: () => {
-              const email = document.getElementById("swal-email").value;
-              const password = document.getElementById("swal-password").value;
-              const firstName = document.getElementById("swal-firstname").value;
-              const lastName = document.getElementById("swal-lastname").value;
-
-              if (!email || !password || !firstName || !lastName) {
-                  Swal.showValidationMessage("Bitte alle Felder ausfüllen");
-                  return false;
-              }
-
-              return { email, password, firstName, lastName };
-          },
-
-          preDeny: () => {
-            this.loginPopup();
-            return;
-          }
-      });
-
-      if (formValues) {
-          console.log("Registrierung:", formValues);
-
-          let konvKey = await this.encryptString(formValues.email + formValues.password + formValues.firstName + formValues.lastName)
-
-          let benutzerObj = {
-            konvKey: konvKey,
-            email: formValues.email,
-            passwort: formValues.password,
-            vorname: formValues.firstName,
-            nachname: formValues.lastName
-          }
-
-          try{
-            await Benutzer.add(benutzerObj);
-            Swal.fire('Hallo ' + benutzerObj.vorname, 'Die Registrierung war erfolgreich', 'success')
-            localStorage.setItem("konvKey", konvKey);
-            this.konvKey = konvKey;
-          } catch(err){
-            await Swal.fire('Fehlgeschlagen', 'Die Registrierung ist fehlgeschlagen', 'error')
-            this.registrierungsPopup();
-          }
-      }
-    },
-    encryptString(inputString){
-      var encrypted = CryptopJS.AES.encrypt(inputString, "ökas893q5högha83pqthASKHG§Z(ERQZ)").toString();
-      encrypted = encrypted.replace(/\//g, "z");
-      encrypted = encrypted.replace(/:/g, "y");
-      encrypted = encrypted.replace(/\./g, "9");
-      return encrypted;
     },
   },
   async created(){
-    //localStorage.setItem("konvKey", 'dafsjokj274');
     this.konvKey = localStorage.getItem("konvKey");
 
     if(this.konvKey == null || this.konvKey == undefined || !this.konvKey){
-      await this.login();
+      await this.$router.push({
+        name: 'login'
+      });
+      return;
     }
     //this.requestFullscreen();
     this.getKassenprojekte();
-  },
+
+    await this.$router.push({
+      name: 'kassenprojekte'
+    })
+},
 };
 </script>
 
