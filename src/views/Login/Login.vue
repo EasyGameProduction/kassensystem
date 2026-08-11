@@ -10,7 +10,7 @@
     </div>-->
     <button class="loginButton" @click="login()">Einloggen</button>
 
-    <p class="Datenschutzsatz">Durch das Einloggen erklären Sie sich mit den <a class="rechtsLink" @click="$router.push('/datenschutz/:')">Datenschutzbestimmungen</a> und der Verwendung von Cookies einverstanden.</p>
+    <p class="Datenschutzsatz">Durch das Einloggen erklären Sie sich mit den <a class="rechtsLink" @click="$router.push('/datenschutz')">Datenschutzbestimmungen</a> und der Verwendung von Cookies einverstanden.</p>
 
     <p class="noAccount">Noch kein Account? <a class="noAccountLink" @click="this.$emit('register')">Jetzt registrieren</a></p>
   </div>
